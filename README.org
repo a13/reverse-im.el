@@ -1,0 +1,19 @@
+* Installation
+
+** Manual
+  
+  TODO:
+  
+** Using quelpa-use-package:
+  #+BEGIN_SRC emacs-lisp
+  (use-package reverse-im
+  :ensure nil
+  :quelpa
+  (point :repo "a13/reverse-im.el" :fetcher github :version original)
+  :config
+  (activate-reverse-im "russian-computer"))
+  #+END_SRC
+* Usage
+  #+BEGIN_SRC emacs-lisp
+  (activate-reverse-im "russian-computer")
+  #+END_SRC
