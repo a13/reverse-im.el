@@ -15,7 +15,7 @@
 
 (require 'quail)
 
-(defun reverse-input-method (input-method)
+(defun reverse-im-reverse-input-method (input-method)
   "Build the reverse mapping of single letters from INPUT-METHOD."
   (interactive
    (list (read-input-method-name "Use input method (default current): ")))
@@ -38,22 +38,22 @@
     (when input-method
       (activate-input-method current))))
 
-(defmacro activate-reverse-im (im)
+(defmacro reverse-im-activate (im)
   "Activates the reverse mapping for IM input method.
 If daemon mode is active, adds hook to `after-make-frame-functions`
-Example usage: (activate-reverse-im \"russian-computer\")"
+Example usage: (reverse-im-activate \"russian-computer\")"
   (if (not (daemonp))
-      (reverse-input-method im)
+      (reverse-im-reverse-input-method im)
     (let ((hname (intern (format "reverse-%s" im))))
       `(progn
          (defun ,hname (f)
            (lexical-let ((frame f))
              (run-at-time nil nil
                           #'(lambda () (unless (and (daemonp) (eq frame terminal-frame))
-                                         (reverse-input-method ,im))))))
+                                         (reverse-im-reverse-input-method ,im))))))
          (add-hook 'after-make-frame-functions #',hname)))))
 
-(defun read-passwd-override-keymap (orig-fun &rest args)
+(defun reverse-im-read-passwd-override-keymap (orig-fun &rest args)
   "Override `read-passwd` keymap."
   (let ((local-function-key-map nil)
         (read-passwd-map (let ((map read-passwd-map))
@@ -63,7 +63,7 @@ Example usage: (activate-reverse-im \"russian-computer\")"
                            map)))
     (apply orig-fun args)))
 
-(advice-add 'read-passwd :around #'read-passwd-override-keymap)
+(advice-add 'read-passwd :around #'reverse-im-read-passwd-override-keymap)
 
 
 (provide 'reverse-im)

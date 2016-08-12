@@ -11,9 +11,9 @@
   :quelpa
   (reverse-im :repo "a13/reverse-im.el" :fetcher github :version original)
   :config
-  (activate-reverse-im "russian-computer"))
+  (reverse-im-activate "russian-computer"))
   #+END_SRC
 * Usage
   #+BEGIN_SRC emacs-lisp
-  (activate-reverse-im "russian-computer")
+  (reverse-im-activate "russian-computer")
   #+END_SRC
