@@ -1,18 +1,21 @@
+* Reverse-im.el
+
+  [[https://melpa.org/#/reverse-im][https://melpa.org/packages/reverse-im-badge.svg]]
+
 * Installation
 
 ** Manual
-  
+
   TODO:
-  
-** Using quelpa-use-package:
+
+** Using use-package (be sure to enable MELPA repository)
   #+BEGIN_SRC emacs-lisp
   (use-package reverse-im
-  :ensure nil
-  :quelpa
-  (reverse-im :repo "a13/reverse-im.el" :fetcher github :version original)
+  :ensure t
   :config
   (reverse-im-activate "russian-computer"))
   #+END_SRC
+
 * Usage
   #+BEGIN_SRC emacs-lisp
   (reverse-im-activate "russian-computer")
