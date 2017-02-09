@@ -22,13 +22,12 @@
 
 (defun reverse-im--key-def (map mod)
   "Return a list of last two arguments for `define-key' for MAP with MOD modifier."
-  (pcase map
-    (`(,keychar ,def)
-     (let ((from (quail-get-translation def (char-to-string keychar) 1)))
-       (and (characterp from) (characterp keychar)
-            (list
-             (vector (append mod (list from)))
-             (vector (append mod (list keychar)))))))))
+  (cl-destructuring-bind (keychar def) map
+    (let ((from (quail-get-translation def (char-to-string keychar) 1)))
+      (and (characterp from) (characterp keychar)
+           (list
+            (vector (append mod (list from)))
+            (vector (append mod (list keychar))))))))
 
 ;; TODO: memoize
 (defun reverse-im--translation-table (input-method)
