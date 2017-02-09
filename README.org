@@ -4,14 +4,17 @@
 
 * Installation
 
+  Reverse-im is now on MELPA.
+
 ** Manual
 
-  TODO:
+   #+BEGIN_SRC emacs-lisp
+   M-x package-install RET reverse-im RET
+   #+END_SRC
 
-** Using use-package (be sure to enable MELPA repository)
+** Using use-package:
   #+BEGIN_SRC emacs-lisp
   (use-package reverse-im
-  :ensure t
   :config
   (reverse-im-activate "russian-computer"))
   #+END_SRC
