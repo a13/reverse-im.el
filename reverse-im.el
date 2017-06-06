@@ -24,7 +24,7 @@
   "Return a list of last two arguments for `define-key' for MAP with MOD modifier."
   (cl-destructuring-bind (keychar def) map
     (let ((from (quail-get-translation def (char-to-string keychar) 1)))
-      (and (characterp from) (characterp keychar)
+      (and (characterp from) (characterp keychar) (not (= from keychar))
            (list
             (vector (append mod (list from)))
             (vector (append mod (list keychar))))))))
