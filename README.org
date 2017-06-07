@@ -31,9 +31,9 @@
   If something goes wrong or you just want to turn translation off:
 
   #+BEGIN_SRC emacs-lisp
-  (reverse-im-dectivate)
+  (reverse-im-deactivate)
   ;; or
-  (reverse-im-dectivate t)
+  (reverse-im-deactivate t)
   ;; to reset translation tables cache
   #+END_SRC
 
