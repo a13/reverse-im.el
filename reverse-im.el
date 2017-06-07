@@ -72,7 +72,11 @@
 (defun reverse-im-activate (input-method)
   "Activate the reverse mapping for INPUT-METHOD.
 Example usage: (reverse-im-activate \"russian-computer\")"
-  (set-keymap-parent function-key-map (reverse-im--im-to-keymap input-method)))
+  (let ((keymap
+         (if (listp input-method)
+             (apply #'make-composed-keymap (mapcar #'reverse-im--im-to-keymap input-method))
+           (reverse-im--im-to-keymap input-method))))
+    (set-keymap-parent function-key-map keymap)))
 
 (defun reverse-im-deactivate (&optional reset)
   "Deactivate translated keymaps.  Optionally RESET `reverse-im--keymaps-alist'."
