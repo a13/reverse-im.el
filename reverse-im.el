@@ -17,7 +17,7 @@
 (require 'cl-macs)
 
 (defvar reverse-im--keymaps-alist
-  `((t . ,function-key-map))
+  nil
   "Alist of pairs input-method/translation keymap.")
 
 (defvar reverse-im-modifiers
@@ -72,21 +72,16 @@
 (defun reverse-im-activate (input-method)
   "Activate the reverse mapping for INPUT-METHOD.
 Example usage: (reverse-im-activate \"russian-computer\")"
-  (setq function-key-map
-        (make-composed-keymap
-         (list
-          (reverse-im--im-to-keymap input-method)
-          function-key-map)))
-  (set-keymap-parent local-function-key-map function-key-map))
+  (set-keymap-parent function-key-map (reverse-im--im-to-keymap input-method)))
 
 (defun reverse-im-deactivate (&optional reset)
   "Deactivate translated keymaps.  Optionally RESET `reverse-im--keymaps-alist'."
-  (setq function-key-map (alist-get t reverse-im--keymaps-alist nil))
-  (set-keymap-parent local-function-key-map function-key-map)
+  (set-keymap-parent function-key-map nil)
   (when reset
-    (setq reverse-im--keymaps-alist `((t . ,function-key-map)))))
+    (setq reverse-im--keymaps-alist nil)))
 
 
 (provide 'reverse-im)
 
 ;;; reverse-im.el ends here
+(reverse-im-deactivate)
