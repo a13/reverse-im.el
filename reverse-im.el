@@ -70,7 +70,7 @@
         new-keymap)))
 
 (defun reverse-im-activate (input-method)
-  "Activate the reverse mapping for INPUT-METHOD.
+  "Activate the reverse mapping for INPUT-METHOD (could be a list).
 Example usage: (reverse-im-activate \"russian-computer\")"
   (let ((keymap
          (if (consp input-method)
