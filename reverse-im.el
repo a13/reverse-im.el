@@ -71,8 +71,7 @@ Example usage: (reverse-im-activate \"russian-computer\")"
   (set-keymap-parent local-function-key-map function-key-map))
 
 (defun reverse-im-deactivate ()
-  "Deactivate translated keymaps.
-remove advice `reverse-im-read-passwd-override-keymap'."
+  "Deactivate translated keymaps."
   (setq function-key-map (alist-get t reverse-im--keymaps-alist nil))
   (set-keymap-parent local-function-key-map function-key-map))
 
