@@ -1,4 +1,5 @@
-;;; reverse-im.el --- Reverse mapping for keyboard layouts other than english. -*- lexical-binding: t -*-
+;;; reverse-im.el --- Reverse mapping for keyboard layouts other than english. -*- lexical-binding: t -*
+-
 ;; Package-Requires: ((emacs "24.4"))
 ;; Keywords: input method
 ;; Homepage: https://github.com/a13/reverse-im.el
@@ -21,8 +22,17 @@
   "Alist of pairs input-method/translation keymap.")
 
 (defvar reverse-im-modifiers
-  '((control) (meta) (control meta))
+  '(control meta)
   "List of modifiers to translate with.")
+
+(defun reverse-im--modifiers-combos (mlist)
+  "All combinations of modifiers from MLIST."
+  (pcase mlist
+    (`(,head . ,tail)
+     (let* ((s (combos tail))
+            (v (mapcar (lambda (x) (cons head x)) s)))
+       (append s v)))
+    ('() '(nil))))
 
 (defun reverse-im--activate-key-def (keymap kd)
   "Add to KEYMAP KD key/definition list."
@@ -48,7 +58,7 @@
        (lambda (map)
          (mapcar
           (apply-partially #'reverse-im--key-def map)
-          (cons nil reverse-im-modifiers)))
+          (reverse-im--modifiers-combos reverse-im-modifiers)))
        (cdr (quail-map))))))
 
 (defun reverse-im--im-to-keymap (input-method)
