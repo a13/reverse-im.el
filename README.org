@@ -5,15 +5,15 @@
   Overrides [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Translation-Keymaps.html][function-key-map]] for preferred input-method to translate input sequences
   to english, so we can use emacs bindings while non-default system layout is active.
 
-* Installation
+** Installation
 
-** Manual
+*** Manual
 
    #+BEGIN_SRC emacs-lisp
    M-x package-install RET reverse-im RET
    #+END_SRC
 
-** Using use-package:
+*** Using use-package:
 
   #+BEGIN_SRC emacs-lisp
   (use-package reverse-im
