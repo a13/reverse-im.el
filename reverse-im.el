@@ -84,4 +84,3 @@ Example usage: (reverse-im-activate \"russian-computer\")"
 (provide 'reverse-im)
 
 ;;; reverse-im.el ends here
-(reverse-im-deactivate)
