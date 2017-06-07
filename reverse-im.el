@@ -73,7 +73,7 @@
   "Activate the reverse mapping for INPUT-METHOD.
 Example usage: (reverse-im-activate \"russian-computer\")"
   (let ((keymap
-         (if (listp input-method)
+         (if (consp input-method)
              (apply #'make-composed-keymap (mapcar #'reverse-im--im-to-keymap input-method))
            (reverse-im--im-to-keymap input-method))))
     (set-keymap-parent function-key-map keymap)))
