@@ -80,10 +80,13 @@ Example usage: (reverse-im-activate \"russian-computer\")"
           function-key-map)))
   (set-keymap-parent local-function-key-map function-key-map))
 
-(defun reverse-im-deactivate ()
-  "Deactivate translated keymaps."
+(defun reverse-im-deactivate (&optional reset)
+  "Deactivate translated keymaps.  Optionally RESET `reverse-im--keymaps-alist'."
   (setq function-key-map (alist-get t reverse-im--keymaps-alist nil))
-  (set-keymap-parent local-function-key-map function-key-map))
+  (set-keymap-parent local-function-key-map function-key-map)
+  (when reset
+    (setq reverse-im--keymaps-alist `((t . ,function-key-map)))))
+
 
 (provide 'reverse-im)
 
