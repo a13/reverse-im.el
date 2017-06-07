@@ -2,9 +2,10 @@
 
   [[https://melpa.org/#/reverse-im][https://melpa.org/packages/reverse-im-badge.svg]]
 
-* Installation
+  Overrides [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Translation-Keymaps.html][function-key-map]] for preferred input-method to translate input sequences
+  to english, so we can use emacs bindings while non-default system layout is active.
 
-  Reverse-im is now on MELPA.
+* Installation
 
 ** Manual
 
@@ -13,13 +14,31 @@
    #+END_SRC
 
 ** Using use-package:
+
   #+BEGIN_SRC emacs-lisp
   (use-package reverse-im
-  :config
-  (reverse-im-activate "russian-computer"))
+    :config
+    (reverse-im-activate "russian-computer"))
   #+END_SRC
 
-* Usage
+
+** Usage:
+
   #+BEGIN_SRC emacs-lisp
   (reverse-im-activate "russian-computer")
+  #+END_SRC
+
+  If something goes wrong or you just want to turn translation off:
+
+  #+BEGIN_SRC emacs-lisp
+  (reverse-im-dectivate)
+  ;; or
+  (reverse-im-dectivate t)
+  ;; to reset translation tables cache
+  #+END_SRC
+
+  By default, only bindings with Ctrl, Meta and Ctrl+Meta are translated.
+  To alternate add modifier combination list to reverse-im-modifiers list.
+  #+BEGIN_SRC emacs-lisp
+  (add-to-list 'reverse-im-modifiers 'super)
   #+END_SRC
