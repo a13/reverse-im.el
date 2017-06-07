@@ -1,5 +1,4 @@
-;;; reverse-im.el --- Reverse mapping for keyboard layouts other than english. -*- lexical-binding: t -*
--
+;;; reverse-im.el --- Reverse mapping for keyboard layouts other than english. -*- lexical-binding: t -*-
 ;; Package-Requires: ((emacs "24.4"))
 ;; Keywords: input method
 ;; Homepage: https://github.com/a13/reverse-im.el
