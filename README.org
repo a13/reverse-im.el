@@ -3,7 +3,7 @@
   [[https://melpa.org/#/reverse-im][https://melpa.org/packages/reverse-im-badge.svg]]
 
   Overrides [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Translation-Keymaps.html][function-key-map]] for preferred input-method to translate input sequences
-  to english, so we can use emacs bindings while non-default system layout is active.
+  to english, so we can use Emacs bindings while non-default system layout is active.
 
 ** Installation
 
