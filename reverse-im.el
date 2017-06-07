@@ -60,16 +60,6 @@
             (vector (append mod (list from)))
             (vector (append mod (list keychar))))))))
 
-(defun reverse-im-read-passwd-override-keymap (orig-fun &rest args)
-  "Override `read-passwd' keymap."
-  (let ((function-key-map nil)
-        (read-passwd-map (let ((map read-passwd-map))
-                           (set-keymap-parent map minibuffer-local-map)
-                           (define-key map [return] #'exit-minibuffer)
-                           (define-key map [backspace] #'delete-backward-char)
-                           map)))
-    (apply orig-fun args)))
-
 (defun reverse-im-activate (input-method)
   "Activate the reverse mapping for INPUT-METHOD.
 Example usage: (reverse-im-activate \"russian-computer\")"
@@ -78,15 +68,13 @@ Example usage: (reverse-im-activate \"russian-computer\")"
          (list
           (reverse-im--im-to-keymap input-method)
           function-key-map)))
-  (set-keymap-parent local-function-key-map function-key-map)
-  (advice-add 'read-passwd :around #'reverse-im-read-passwd-override-keymap))
+  (set-keymap-parent local-function-key-map function-key-map))
 
 (defun reverse-im-deactivate ()
   "Deactivate translated keymaps.
 remove advice `reverse-im-read-passwd-override-keymap'."
   (setq function-key-map (alist-get t reverse-im--keymaps-alist nil))
-  (set-keymap-parent local-function-key-map function-key-map)
-  (advice-remove 'read-passwd  #'reverse-im-read-passwd-override-keymap))
+  (set-keymap-parent local-function-key-map function-key-map))
 
 (provide 'reverse-im)
 
