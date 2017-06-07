@@ -20,6 +20,10 @@
   `((t . ,function-key-map))
   "Alist of pairs input-method/translation keymap.")
 
+(defvar reverse-im-modifiers
+  '((control) (meta) (control meta))
+  "List of modifiers to translate with")
+
 (defun reverse-im--activate-key-def (keymap kd)
   "Add to KEYMAP KD key/definition list."
   (when kd
@@ -35,7 +39,7 @@
        (lambda (map)
          (mapcar
           (apply-partially #'reverse-im--key-def map)
-          (list nil '(control) '(meta) '(control meta))))
+          (cons nil reverse-im-modifiers)))
        (cdr (quail-map))))))
 
 (defun reverse-im--im-to-keymap (input-method)
@@ -75,6 +79,7 @@ Example usage: (reverse-im-activate \"russian-computer\")"
          (list
           (reverse-im--im-to-keymap input-method)
           function-key-map)))
+  (set-keymap-parent local-function-key-map function-key-map)
   (advice-add 'read-passwd :around #'reverse-im-read-passwd-override-keymap))
 
 (defun reverse-im-deactivate ()
