@@ -22,7 +22,7 @@
 
 (defvar reverse-im-modifiers
   '((control) (meta) (control meta))
-  "List of modifiers to translate with")
+  "List of modifiers to translate with.")
 
 (defun reverse-im--activate-key-def (keymap kd)
   "Add to KEYMAP KD key/definition list."
@@ -44,13 +44,12 @@
 
 (defun reverse-im--im-to-keymap (input-method)
   "Translation keymap for INPUT-METHOD."
-  (let ((keymap (alist-get input-method reverse-im--keymaps-alist nil)))
-    (or keymap
-        (let ((new-keymap (make-sparse-keymap)))
-          (mapc (apply-partially #'reverse-im--activate-key-def new-keymap)
-                (reverse-im--translation-table input-method))
-          (add-to-list 'reverse-im--keymaps-alist `(,input-method . ,new-keymap))
-          new-keymap))))
+  (or (alist-get input-method reverse-im--keymaps-alist nil)
+      (let ((new-keymap (make-sparse-keymap)))
+        (mapc (apply-partially #'reverse-im--activate-key-def new-keymap)
+              (reverse-im--translation-table input-method))
+        (add-to-list 'reverse-im--keymaps-alist `(,input-method . ,new-keymap))
+        new-keymap)))
 
 (defun reverse-im--key-def (map mod)
   "Return a list of last two arguments for `define-key' for MAP with MOD modifier."
