@@ -29,7 +29,7 @@
   "All combinations of modifiers from MLIST."
   (pcase mlist
     (`(,head . ,tail)
-     (let* ((s (combos tail))
+     (let* ((s (reverse-im--modifiers-combos tail))
             (v (mapcar (lambda (x) (cons head x)) s)))
        (append s v)))
     ('() '(nil))))
