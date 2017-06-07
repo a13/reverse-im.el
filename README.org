@@ -38,7 +38,7 @@
   #+END_SRC
 
   By default, only bindings with Ctrl, Meta and Ctrl+Meta are translated.
-  To alternate add modifier combination list to reverse-im-modifiers list.
+  To alternate add modifier to reverse-im-modifiers list:
   #+BEGIN_SRC emacs-lisp
   (add-to-list 'reverse-im-modifiers 'super)
   #+END_SRC
