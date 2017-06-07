@@ -38,12 +38,6 @@
           (list nil '(control) '(meta) '(control meta))))
        (cdr (quail-map))))))
 
-(when nil
-  (reverse-im--im-to-keymap "russian-unipunct")
-  (reverse-im-activate "russian-unipunct")
-  (reverse-im-deactivate)
-  reverse-im--keymaps-alist)
-
 (defun reverse-im--im-to-keymap (input-method)
   "Translation keymap for INPUT-METHOD."
   (let ((keymap (alist-get input-method reverse-im--keymaps-alist nil)))
