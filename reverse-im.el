@@ -64,12 +64,13 @@
 
 (defun reverse-im--im-to-keymap (input-method)
   "Translation keymap for INPUT-METHOD."
-  (or (alist-get input-method reverse-im--keymaps-alist nil)
-      (let ((new-keymap (make-sparse-keymap)))
-        (mapc (apply-partially #'reverse-im--activate-key-def new-keymap)
-              (reverse-im--translation-table input-method))
-        (add-to-list 'reverse-im--keymaps-alist `(,input-method . ,new-keymap))
-        new-keymap)))
+  (let ((im-sym (intern input-method)))
+    (or (alist-get im-sym reverse-im--keymaps-alist nil)
+        (let ((new-keymap (make-sparse-keymap)))
+          (mapc (apply-partially #'reverse-im--activate-key-def new-keymap)
+                (reverse-im--translation-table input-method))
+          (add-to-list 'reverse-im--keymaps-alist `(,im-sym . ,new-keymap))
+          new-keymap))))
 
 (defun reverse-im-activate (input-method)
   "Activate the reverse mapping for INPUT-METHOD.
