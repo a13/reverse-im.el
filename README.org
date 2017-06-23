@@ -13,7 +13,7 @@
    M-x package-install RET reverse-im RET
    #+END_SRC
 
-*** Using use-package:
+*** Using use-package
 
   #+BEGIN_SRC emacs-lisp
   (use-package reverse-im
@@ -21,24 +21,63 @@
     (reverse-im-activate "russian-computer"))
   #+END_SRC
 
-
-** Usage:
-
+  Or, using provided minor mode instead (see [[Settings][Settings]] for details):
   #+BEGIN_SRC emacs-lisp
-  (reverse-im-activate "russian-computer")
+  (use-package reverse-im
+    :config
+    (add-to-list 'reverse-im-modifiers 'super)
+    (add-to-list 'reverse-im-input-methods "russian-computer")
+    (reverse-im-mode))
   #+END_SRC
 
-  If something goes wrong or you just want to turn translation off:
 
-  #+BEGIN_SRC emacs-lisp
-  (reverse-im-deactivate)
-  ;; or
-  (reverse-im-deactivate t)
-  ;; to reset translation tables cache
-  #+END_SRC
+** Usage
+   Reverse-im provides simple minor mode that activates/deactivates translations for all
+   input methods from ([[https://www.gnu.org/software/emacs/manual/html_node/emacs/Easy-Customization.html][customizable]]) reverse-im-input-methods list (empty by default).
 
-  By default, only bindings with Ctrl, Meta and Ctrl+Meta are translated.
-  To alternate add modifier to reverse-im-modifiers list:
-  #+BEGIN_SRC emacs-lisp
-  (add-to-list 'reverse-im-modifiers 'super)
-  #+END_SRC
+
+*** Settings
+
+    For e.g. "russian-computer" input method you can use any of methods below:
+
+    #+BEGIN_SRC emacs-lisp
+    ;; This one don't uses customize so should be called any time minor mode is being activated
+    (add-to-list 'reverse-im-input-methods "russian-computer")
+    ;; These store list variable in `custom-file'.
+    ;; provides autocompletion, one input-method at a time
+    M-x reverse-im-add-input-method RET russian-computer RET
+    ;; standard customization interface
+    M-x customize-variable RET reverse-im-input-methods RET
+    #+END_SRC
+
+    By default, only bindings with Ctrl, Meta and Ctrl+Meta are translated.
+    To alternate add modifier to (customizable) reverse-im-modifiers list:
+    #+BEGIN_SRC emacs-lisp
+    (add-to-list 'reverse-im-modifiers 'super)
+    ;; or
+    M-x customize-variable RET reverse-im-modifiers RET
+    #+END_SRC
+
+
+*** Activation/Deactivation
+
+    #+BEGIN_SRC emacs-lisp
+    (reverse-im-mode t) ; call with a negative argument to disable
+    ;; or
+    M-x reverse-im-mode RET
+    #+END_SRC
+
+
+    Alternatively, you can directly call translation function:
+    #+BEGIN_SRC emacs-lisp
+    (reverse-im-activate "russian-computer")
+    #+END_SRC
+
+    If something goes wrong or you just want to turn translation off.
+
+    #+BEGIN_SRC emacs-lisp
+    (reverse-im-deactivate)
+    ;; or
+    (reverse-im-deactivate t)
+    ;; to reset translation tables cache
+    #+END_SRC

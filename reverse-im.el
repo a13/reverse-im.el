@@ -16,13 +16,26 @@
 (require 'cl-extra)
 (require 'cl-macs)
 
+(defgroup reverse-im nil
+  "Translate input methods."
+  :group 'I18n)
+
+(defcustom reverse-im-input-methods
+  nil
+  "List of input methods to activate when minor-mode is on."
+  :group 'reverse-im
+  :type `(repeat (choice (const nil)
+                         mule-input-method-string)))
+
+(defcustom reverse-im-modifiers
+  '(control meta)
+  "List of modifiers to translate with."
+  :type '(repeat symbol)
+  :group 'reverse-im)
+
 (defvar reverse-im--keymaps-alist
   nil
   "Alist of pairs input-method/translation keymap.")
-
-(defvar reverse-im-modifiers
-  '(control meta)
-  "List of modifiers to translate with.")
 
 (defun reverse-im--modifiers-combos (mlist)
   "All combinations of modifiers from MLIST."
@@ -86,6 +99,25 @@ Example usage: (reverse-im-activate \"russian-computer\")"
   (set-keymap-parent function-key-map nil)
   (when reset
     (setq reverse-im--keymaps-alist nil)))
+
+(defun reverse-im-add-input-method (input-method)
+  "Add INPUT-METHOD to `reverse-im-input-methods list'."
+  (interactive
+   (list (read-input-method-name "Translate input method: ")))
+  (when input-method
+    (add-to-list 'reverse-im-input-methods input-method)
+    (customize-save-variable 'reverse-im-input-methods reverse-im-input-methods)))
+
+(define-minor-mode reverse-im-mode
+  "Toggle reverse-im mode."
+  :init-value nil
+  :global t
+  (if reverse-im-mode
+      (progn
+        (when (null reverse-im-input-methods)
+          (call-interactively #'reverse-im-add-input-method))
+        (mapc #'reverse-im-activate reverse-im-input-methods))
+    (reverse-im-deactivate t)))
 
 
 (provide 'reverse-im)
