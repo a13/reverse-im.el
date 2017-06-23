@@ -27,7 +27,7 @@
     :config
     (add-to-list 'reverse-im-modifiers 'super)
     (add-to-list 'reverse-im-input-methods "russian-computer")
-    (reverse-im-mode))
+    (reverse-im-mode t))
   #+END_SRC
 
 
@@ -81,3 +81,7 @@
     (reverse-im-deactivate t)
     ;; to reset translation tables cache
     #+END_SRC
+
+** Known issues:
+
+   - Bindings with AltGr (as Meta) [[https://github.com/a13/reverse-im.el/issues/4#issuecomment-308143947][doesn't work]] well on Windows.
