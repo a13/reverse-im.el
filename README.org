@@ -84,4 +84,4 @@
 
 ** Known issues:
 
-   - Bindings with AltGr (as Meta) [[https://github.com/a13/reverse-im.el/issues/4#issuecomment-308143947][doesn't work]] well on Windows.
+   - Bindings with AltGr (as Meta) [[https://github.com/a13/reverse-im.el/issues/4#issuecomment-308143947][don't work]] well on Windows.
