@@ -1,14 +1,27 @@
 ;;; reverse-im.el --- Reverse mapping for keyboard layouts other than english. -*- lexical-binding: t -*-
+
+;; Authors: Juri Linkov <juri@jurta.org> (initial idea), Dmitry K. (packager and maintainer)
 ;; Package-Requires: ((emacs "24.4"))
 ;; Keywords: input method
 ;; Homepage: https://github.com/a13/reverse-im.el
+
+;; This file is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; For a full copy of the GNU General Public License
+;; see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;; Overrides `function-key-map' for preferred input-method to translate input sequences
 ;; to english, so we can use Emacs bindings while non-default system layout is active.
 ;; Example usage: (reverse-im-activate "russian-computer")
-
-;; Main idea and some code taken from http://ru-emacs.livejournal.com/82428.html
 
 ;;; Code:
 
