@@ -28,6 +28,7 @@
 (require 'quail)
 (require 'cl-extra)
 (require 'cl-macs)
+(require 'cl-seq)
 
 (defgroup reverse-im nil
   "Translate input methods."
@@ -71,6 +72,8 @@
     (`(,keychar ,def)
      (let ((from (quail-get-translation def (char-to-string keychar) 1)))
        (and (characterp from) (characterp keychar) (not (= from keychar))
+            ;; don't translate if the char is in default layout
+            (not (cl-position from quail-keyboard-layout))
             (list
              (vector (append mod (list from)))
              (vector (append mod (list keychar)))))))
