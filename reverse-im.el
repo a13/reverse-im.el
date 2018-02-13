@@ -58,7 +58,7 @@
      (let* ((s (reverse-im--modifiers-combos tail))
             (v (mapcar (lambda (x) (cons head x)) s)))
        (append s v)))
-    ('() '(nil))))
+    (`() '(nil))))
 
 (defun reverse-im--activate-key-def (keymap kd)
   "Add to KEYMAP KD key/definition list."
@@ -66,7 +66,7 @@
     (cl-destructuring-bind (key def) kd
       (define-key keymap key def))))
 
-(defun reverse-im--key-def (map mod)
+(defun reverse-im--key-def (map)
   "Return a list of last two arguments for `define-key' for MAP with MOD modifier."
   (pcase map
     (`(,keychar ,def)
@@ -74,9 +74,12 @@
        (and (characterp from) (characterp keychar) (not (= from keychar))
             ;; don't translate if the char is in default layout
             (not (cl-position from quail-keyboard-layout))
-            (list
-             (vector (append mod (list from)))
-             (vector (append mod (list keychar)))))))
+            (mapcar
+             (lambda (mod)
+               (list
+                (vector (append mod (list from)))
+                (vector (append mod (list keychar)))))
+             (reverse-im--modifiers-combos reverse-im-modifiers)))))
     (_ nil)))
 
 (defun reverse-im--translation-table (input-method)
@@ -85,12 +88,7 @@
       (with-temp-buffer
         (activate-input-method input-method)
         (when (and current-input-method quail-keyboard-layout)
-          (cl-mapcan
-           (lambda (map)
-             (mapcar
-              (apply-partially #'reverse-im--key-def map)
-              (reverse-im--modifiers-combos reverse-im-modifiers)))
-           (cdr (quail-map)))))
+          (cl-mapcan #'reverse-im--key-def (cdr (quail-map)))))
     (when (bufferp quail-completion-buf)
       (kill-buffer quail-completion-buf))))
 
