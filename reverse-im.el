@@ -1,7 +1,7 @@
 ;;; reverse-im.el --- Reverse mapping for keyboard layouts other than english. -*- lexical-binding: t -*-
 
 ;; Authors: Juri Linkov <juri@jurta.org> (initial idea), Dmitry K. (packager and maintainer)
-;; Package-Requires: ((emacs "24.4"))
+;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: input method
 ;; Homepage: https://github.com/a13/reverse-im.el
 
@@ -27,7 +27,6 @@
 
 (require 'quail)
 (require 'cl-extra)
-(require 'cl-macs)
 (require 'cl-seq)
 
 (defgroup reverse-im nil
@@ -65,9 +64,9 @@
 
 (defun reverse-im--activate-key-def (keymap kd)
   "Add to KEYMAP KD key/definition list."
-  (when kd
-    (cl-destructuring-bind (key def) kd
-      (define-key keymap key def))))
+  (pcase kd
+    (`(,key ,def)
+     (define-key keymap key def))))
 
 (defun reverse-im--key-def (map)
   "Return a list of last two arguments for `define-key' for MAP with MOD modifier."
@@ -79,11 +78,9 @@
             (not (cl-position from quail-keyboard-layout))
             (mapcar
              (lambda (mod)
-               (list
-                (vector (append mod (list from)))
-                (vector (append mod (list keychar)))))
-             (reverse-im--modifiers-combos reverse-im-modifiers)))))
-    (_ nil)))
+               `([,(append mod (list from))]
+                 [,(append mod (list keychar))]))
+             (reverse-im--modifiers-combos reverse-im-modifiers)))))))
 
 (defun reverse-im--translation-table (input-method)
   "Generate a translation table for INPUT-METHOD."
@@ -124,6 +121,16 @@ Example usage: (reverse-im-activate \"russian-computer\")"
   (when input-method
     (add-to-list 'reverse-im-input-methods input-method)
     (customize-save-variable 'reverse-im-input-methods reverse-im-input-methods)))
+
+(defun reverse-im-which-key-show (input-method)
+  "Show translation bindings for INPUT-METHOD using `which-key'"
+  (interactive
+   (list (read-input-method-name "Translate input method: ")))
+  (if (require 'which-key nil t)
+      (which-key--show-keymap input-method
+                              (reverse-im--im-to-keymap input-method))
+    (message "which-key is not installed.")))
+
 
 (define-minor-mode reverse-im-mode
   "Toggle reverse-im mode."

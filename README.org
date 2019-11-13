@@ -16,24 +16,32 @@
 *** Using use-package
 
   #+BEGIN_SRC emacs-lisp
-  (use-package reverse-im
-    :config
-    (reverse-im-activate "russian-computer"))
+    (use-package reverse-im
+      :ensure t
+      :config
+      (reverse-im-activate "russian-computer"))
   #+END_SRC
 
   Or, using provided minor mode instead (see [[Settings][Settings]] for details):
   #+BEGIN_SRC emacs-lisp
-  (use-package reverse-im
-    :config
-    (add-to-list 'reverse-im-modifiers 'super)
-    (add-to-list 'reverse-im-input-methods "russian-computer")
-    (reverse-im-mode t))
+    (use-package reverse-im
+      :ensure t
+      :config
+      (add-to-list 'reverse-im-modifiers 'super)
+      (add-to-list 'reverse-im-input-methods "russian-computer")
+      (reverse-im-mode t))
   #+END_SRC
 
 
 ** Usage
    Reverse-im provides simple minor mode that activates/deactivates translations for all
    input methods from ([[https://www.gnu.org/software/emacs/manual/html_node/emacs/Easy-Customization.html][customizable]]) reverse-im-input-methods list (empty by default).
+
+   If you have [[https://github.com/justbur/emacs-which-key][which-key]] installed, you can examine how an input method will be remapped by calling
+
+   #+BEGIN_SRC emacs-lisp
+   M-x reverse-im-which-key-show
+   #+END_SRC
 
 
 *** Settings
