@@ -68,19 +68,37 @@
     (`(,key ,def)
      (define-key keymap key def))))
 
+(defun reverse-im--to-char (x)
+  "Convert X to char, if needed."
+  (if (stringp x)
+      (string-to-char x)
+    x))
+
+(defun reverse-im--get-candidates (translation)
+  (cond ((and translation (characterp translation))
+         (list translation))
+        ((consp translation)
+         (mapcar #'reverse-im--to-char (cdr translation)))))
+
+(defun reverse-im--key-def-internal (keychar candidates)
+  (mapcan (lambda (from)
+            (and (characterp from) (characterp keychar) (not (= from keychar))
+                 ;; don't translate if the char is in default layout
+                 (not (cl-position from quail-keyboard-layout))
+                 (mapcar
+                  (lambda (mod)
+                    `([,(append mod (list from))]
+                      [,(append mod (list keychar))]))
+                  (reverse-im--modifiers-combos reverse-im-modifiers))))
+          candidates))
+
 (defun reverse-im--key-def (map)
   "Return a list of last two arguments for `define-key' for MAP with MOD modifier."
   (pcase map
     (`(,keychar ,def)
-     (let ((from (quail-get-translation def (char-to-string keychar) 1)))
-       (and (characterp from) (characterp keychar) (not (= from keychar))
-            ;; don't translate if the char is in default layout
-            (not (cl-position from quail-keyboard-layout))
-            (mapcar
-             (lambda (mod)
-               `([,(append mod (list from))]
-                 [,(append mod (list keychar))]))
-             (reverse-im--modifiers-combos reverse-im-modifiers)))))))
+     (let* ((translation (quail-get-translation def (char-to-string keychar) 1))
+            (candidates (reverse-im--get-candidates translation)))
+       (reverse-im--key-def-internal keychar candidates)))))
 
 (defun reverse-im--translation-table (input-method)
   "Generate a translation table for INPUT-METHOD."
