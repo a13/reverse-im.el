@@ -3,7 +3,7 @@
   [[https://melpa.org/#/reverse-im][https://melpa.org/packages/reverse-im-badge.svg]]
 
   Overrides [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Translation-Keymaps.html][function-key-map]] for preferred input-method to translate input sequences
-  to english, so we can use Emacs bindings while non-default system layout is active.
+  to English, so we can use Emacs bindings while the non-default system layout is active.
 
 ** Installation
 
@@ -15,6 +15,19 @@
 
 *** Using use-package
 
+  Using provided minor mode instead (see [[Settings][Settings]] for details):
+  #+BEGIN_SRC emacs-lisp
+    (use-package reverse-im
+      :ensure t
+      :custom
+      (reverse-im-modifiers '(control meta super))
+      (reverse-im-input-methods '("russian-unipunct"))
+      :config
+      (reverse-im-mode t))
+  #+END_SRC
+
+  or, by using the old way
+
   #+BEGIN_SRC emacs-lisp
     (use-package reverse-im
       :ensure t
@@ -22,15 +35,7 @@
       (reverse-im-activate "russian-computer"))
   #+END_SRC
 
-  Or, using provided minor mode instead (see [[Settings][Settings]] for details):
-  #+BEGIN_SRC emacs-lisp
-    (use-package reverse-im
-      :ensure t
-      :config
-      (add-to-list 'reverse-im-modifiers 'super)
-      (add-to-list 'reverse-im-input-methods "russian-computer")
-      (reverse-im-mode t))
-  #+END_SRC
+
 
 
 ** Usage
@@ -46,20 +51,20 @@
 
 *** Settings
 
-    For e.g. "russian-computer" input method you can use any of methods below:
+    NB: I highly recommend the use-package method.
+
+    For e.g. "russian-computer" input method you can use any of the methods below:
 
     #+BEGIN_SRC emacs-lisp
-    ;; This one don't uses customize so should be called any time minor mode is being activated
-    (add-to-list 'reverse-im-input-methods "russian-computer")
+    ;; standard customization interface
+    M-x customize-variable RET reverse-im-input-methods RET
     ;; These store list variable in `custom-file'.
     ;; provides autocompletion, one input-method at a time
     M-x reverse-im-add-input-method RET russian-computer RET
-    ;; standard customization interface
-    M-x customize-variable RET reverse-im-input-methods RET
     #+END_SRC
 
-    By default, only bindings with Ctrl, Meta and Ctrl+Meta are translated.
-    To alternate add modifier to (customizable) reverse-im-modifiers list:
+    By default, only bindings with Ctrl, Meta, and Ctrl+Meta are translated.
+    To alternate add modifier to the (customizable) reverse-im-modifiers list:
     #+BEGIN_SRC emacs-lisp
     (add-to-list 'reverse-im-modifiers 'super)
     ;; or
@@ -70,9 +75,9 @@
 *** Activation/Deactivation
 
     #+BEGIN_SRC emacs-lisp
-    (reverse-im-mode t) ; call with a negative argument to disable
-    ;; or
     M-x reverse-im-mode RET
+    ;; or
+    (reverse-im-mode t) ; call with a negative argument to disable
     #+END_SRC
 
 

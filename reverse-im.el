@@ -123,7 +123,7 @@ Example usage: (reverse-im-activate \"russian-computer\")"
     (customize-save-variable 'reverse-im-input-methods reverse-im-input-methods)))
 
 (defun reverse-im-which-key-show (input-method)
-  "Show translation bindings for INPUT-METHOD using `which-key'"
+  "Show translation bindings for INPUT-METHOD using `which-key'."
   (interactive
    (list (read-input-method-name "Translate input method: ")))
   (if (require 'which-key nil t)
