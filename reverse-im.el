@@ -43,7 +43,7 @@
 
 (declare-function which-key--show-keymap "which-key")
 
-
+;;; Customs
 (defgroup reverse-im nil
   "Translate input methods."
   :group 'I18n)
@@ -64,6 +64,7 @@
   :type '(repeat symbol)
   :group 'reverse-im)
 
+;;; Storage vars
 (defvar reverse-im--default-parent
   nil
   "The default value of the `function-key-map' parent keymap.")
@@ -72,6 +73,7 @@
   nil
   "Alist of pairs input-method/translation keymap.")
 
+;;; Utils
 (cl-defun reverse-im--modifiers-combos ((head . tail))
   "All combinations of modifiers from the list argument."
   (let* ((s (if tail
@@ -86,32 +88,26 @@
       (string-to-char x)
     x))
 
-(defun reverse-im--get-candidates (translation)
-  "Get a list of all translation candidates for the quail TRANSLATION."
-  (cond ((and translation (characterp translation))
-         (list translation))
-        ;; one key can have multiple bindings in alternative layout
-        ((consp translation)
-         (mapcar #'reverse-im--to-char (cdr translation)))))
-
-(defun reverse-im--key-def-internal (keychar candidates)
-  "The internal version of the one below for KEYCHAR and quail CANDIDATES."
-  (mapcan (lambda (from)
-            (and (characterp from) (characterp keychar) (not (= from keychar))
-                 ;; don't translate if the char is in default layout
-                 (not (cl-position from quail-keyboard-layout))
-                 (mapcar
-                  (lambda (mod)
-                    `([,(append mod (list from))]
-                      [,(append mod (list keychar))]))
-                  (reverse-im--modifiers-combos reverse-im-modifiers))))
-          candidates))
+;;; Calculate the full translation table
+(defun reverse-im--key-def-internal (keychar from)
+  "Get all translating combos from FROM to KEYCHAR."
+  (and (characterp from) (characterp keychar) (not (= from keychar))
+       ;; don't translate if the char is in default layout
+       (not (cl-position from quail-keyboard-layout))
+       (mapcar
+        (lambda (mod)
+          `([,(append mod (list from))]
+            [,(append mod (list keychar))]))
+        (reverse-im--modifiers-combos reverse-im-modifiers))))
 
 (cl-defun reverse-im--key-def ((keychar def))
   "Return a list of `define-key' '(key def) arguments for quail KEYCHAR and DEF"
-  (let* ((translation (quail-get-translation def (char-to-string keychar) 1))
-         (candidates (reverse-im--get-candidates translation)))
-    (reverse-im--key-def-internal keychar candidates)))
+  (let ((translation (quail-get-translation def (char-to-string keychar) 1)))
+    (cond ((and translation (characterp translation))
+           (reverse-im--key-def-internal keychar translation))
+          ((consp translation)
+           (mapcan (apply-partially #'reverse-im--key-def-internal keychar)
+                   (mapcar #'reverse-im--to-char (cdr translation)))))))
 
 (defun reverse-im--translation-table (input-method)
   "Generate a translation table for INPUT-METHOD."
@@ -122,16 +118,13 @@
     (when (and current-input-method quail-keyboard-layout)
       (cl-mapcan #'reverse-im--key-def (cdr (quail-map))))))
 
-(cl-defun reverse-im--activate-key-def (keymap (key def))
-  "Add to KEYMAP KD key/definition list."
-  (define-key keymap key def))
-
+;;; Generate the translation keymap
 (defun reverse-im--im-to-keymap-internal (input-method)
   "Generate a keymap for INPUT-METHOD."
-  (let ((new-keymap (make-sparse-keymap)))
-    (mapc (apply-partially #'reverse-im--activate-key-def new-keymap)
-          (reverse-im--translation-table input-method))
-    new-keymap))
+  (let ((new-keymap (make-sparse-keymap))
+        (tt (reverse-im--translation-table input-method)))
+    (cl-dolist (translation tt new-keymap)
+      (apply #'define-key new-keymap translation))))
 
 (defun reverse-im--im-to-keymap (input-method)
   "Translation keymap for INPUT-METHOD, a memoized version of the previous one."
@@ -139,6 +132,8 @@
       (let ((new-keymap (reverse-im--im-to-keymap-internal input-method)))
         (add-to-list 'reverse-im--keymaps-alist (cons input-method new-keymap))
         new-keymap)))
+
+;;; User-accessible functions
 
 (defun reverse-im-activate (input-method)
   "Activate the reverse mapping for INPUT-METHOD.
