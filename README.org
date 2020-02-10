@@ -5,6 +5,8 @@
   Overrides [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Translation-Keymaps.html][function-key-map]] for preferred input-method to translate input sequences
   to English, so we can use Emacs bindings while the non-default system layout is active.
 
+  N.B. For all the examples below "russian-computer" input method is used.
+
 ** Installation
 
 *** Manual
@@ -20,8 +22,7 @@
     (use-package reverse-im
       :ensure t
       :custom
-      (reverse-im-modifiers '(control meta super))
-      (reverse-im-input-methods '("russian-unipunct"))
+      (reverse-im-input-methods '("russian-computer"))
       :config
       (reverse-im-mode t))
   #+END_SRC
@@ -53,20 +54,18 @@
 
     NB: I highly recommend the use-package method.
 
-    For e.g. "russian-computer" input method you can use any of the methods below:
-
     #+BEGIN_SRC emacs-lisp
-    ;; standard customization interface
+    ;; standard customization interface, note that this will turn on the mode immediately
     M-x customize-variable RET reverse-im-input-methods RET
     ;; These store list variable in `custom-file'.
     ;; provides autocompletion, one input-method at a time
     M-x reverse-im-add-input-method RET russian-computer RET
     #+END_SRC
 
-    By default, only bindings with Ctrl, Meta, and Ctrl+Meta are translated.
-    To alternate add modifier to the (customizable) reverse-im-modifiers list:
+    Since version 0.0.2 all possible bindings with Ctrl, Meta, and Super are translated.
+    If you want to change it (e.g. you don't use Super)
     #+BEGIN_SRC emacs-lisp
-    (add-to-list 'reverse-im-modifiers 'super)
+    (setq 'reverse-im-modifiers '(control meta))
     ;; or
     M-x customize-variable RET reverse-im-modifiers RET
     #+END_SRC
