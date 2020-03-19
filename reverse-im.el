@@ -100,8 +100,8 @@
             [,(append mod (list keychar))]))
         (reverse-im--modifiers-combos reverse-im-modifiers))))
 
-(cl-defun reverse-im--key-def ((keychar def))
-  "Return a list of `define-key' '(key def) arguments for quail KEYCHAR and DEF"
+(cl-defun reverse-im--key-def ((keychar def &rest _skip))
+  "Return a list of `define-key' '(key def) arguments for quail KEYCHAR and DEF."
   (let ((translation (quail-get-translation def (char-to-string keychar) 1)))
     (cond ((and translation (characterp translation))
            (reverse-im--key-def-internal keychar translation))
