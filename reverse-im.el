@@ -128,10 +128,12 @@
 
 (defun reverse-im--im-to-keymap (input-method)
   "Translation keymap for INPUT-METHOD, a memoized version of the previous one."
-  (or (alist-get input-method reverse-im--keymaps-alist nil nil #'string=)
-      (let ((new-keymap (reverse-im--im-to-keymap-internal input-method)))
-        (add-to-list 'reverse-im--keymaps-alist (cons input-method new-keymap))
-        new-keymap)))
+  ;; alist-get testfn arg appeared in 26.1 so we have to symbolize
+  (let ((input-method (intern input-method)))
+    (or (alist-get input-method reverse-im--keymaps-alist)
+        (let ((new-keymap (reverse-im--im-to-keymap-internal input-method)))
+          (add-to-list 'reverse-im--keymaps-alist (cons input-method new-keymap))
+          new-keymap))))
 
 ;;; User-accessible functions
 
