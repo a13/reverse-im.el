@@ -100,6 +100,33 @@
       ;; to reset translation tables cache
     #+END_SRC
 
+** Char folding
+   Emacs supports [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Lax-Search.html#Lax-Search][Lax Matching During Searching]] and since version 27 you can include your own search substitutions. Reverse-im provides reverse-im-char-fold-include function to generate such list based on current translation keymap.
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package char-fold
+       :after reverse-im
+       :custom
+       (char-fold-include (append char-fold--default-include
+                                  (reverse-im-char-fold-include)))
+       (char-fold-symmetric t)
+       (search-default-mode #'char-fold-to-regexp))
+   #+END_SRC
+
+*** pre-27 versions
+    You can download the new version of char-fold.el manually, or using something like
+    #+BEGIN_SRC emacs-lisp
+      (use-package char-fold
+        :after reverse-im
+        :custom
+        (char-fold-include (append char-fold--default-include
+                                   (reverse-im-char-fold-include)))
+        (char-fold-symmetric t)
+        (search-default-mode #'char-fold-to-regexp)
+        :quelpa (char-fold :url "https://raw.githubusercontent.com/emacs-mirror/emacs/master/lisp/char-fold.el"
+                           :fetcher url))
+    #+END_SRC
+
 ** Known issues:
 
    - Bindings with AltGr (as Meta) [[https://github.com/a13/reverse-im.el/issues/4#issuecomment-308143947][don't work]] well on Windows.

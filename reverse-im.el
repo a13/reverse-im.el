@@ -4,7 +4,7 @@
 ;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: i18n
 ;; Homepage: https://github.com/a13/reverse-im.el
-;; Version: 0.0.4
+;; Version: 0.0.5
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -201,6 +201,21 @@ Example usage: (reverse-im-activate \"russian-computer\")"
   (let ((res (apply orig-fun args)))
     (reverse-im--translate-char res)))
 
+
+;;; char-folding
+(defun reverse-im-char-fold-include ()
+  "Generate a substitutions list for `char-fold-include'."
+  (let ((char-fold '()))
+    (map-keymap
+     #'(lambda (from value)
+         (when (and (characterp from)
+                    (vectorp value))
+           (let* ((fold (mapcar #'string
+                                (cl-remove-if-not #'characterp value)))
+                  (new-elt (append (list from) fold nil)))
+             (cl-pushnew new-elt char-fold))))
+     (keymap-parent function-key-map))
+    char-fold))
 
 (provide 'reverse-im)
 
