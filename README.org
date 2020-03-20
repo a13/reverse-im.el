@@ -11,30 +11,30 @@
 
 *** Manual
 
-   #+BEGIN_SRC emacs-lisp
-   M-x package-install RET reverse-im RET
-   #+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      M-x package-install RET reverse-im RET
+    #+END_SRC
 
 *** Using use-package
 
-  Using provided minor mode instead (see [[Settings][Settings]] for details):
-  #+BEGIN_SRC emacs-lisp
-    (use-package reverse-im
-      :ensure t
-      :custom
-      (reverse-im-input-methods '("russian-computer"))
-      :config
-      (reverse-im-mode t))
-  #+END_SRC
+    Using provided minor mode instead (see [[Settings][Settings]] for details):
+    #+BEGIN_SRC emacs-lisp
+      (use-package reverse-im
+        :ensure t
+        :custom
+        (reverse-im-input-methods '("russian-computer"))
+        :config
+        (reverse-im-mode t))
+    #+END_SRC
 
-  or, by using the old way
+    or, by using the old way
 
-  #+BEGIN_SRC emacs-lisp
-    (use-package reverse-im
-      :ensure t
-      :config
-      (reverse-im-activate "russian-computer"))
-  #+END_SRC
+    #+BEGIN_SRC emacs-lisp
+      (use-package reverse-im
+        :ensure t
+        :config
+        (reverse-im-activate "russian-computer"))
+    #+END_SRC
 
 
 
@@ -46,7 +46,7 @@
    If you have [[https://github.com/justbur/emacs-which-key][which-key]] installed, you can examine how an input method will be remapped by calling
 
    #+BEGIN_SRC emacs-lisp
-   M-x reverse-im-which-key-show
+     M-x reverse-im-which-key-show
    #+END_SRC
 
 
@@ -55,51 +55,64 @@
     NB: I highly recommend the use-package method.
 
     #+BEGIN_SRC emacs-lisp
-    ;; standard customization interface, note that this will turn on the mode immediately
-    M-x customize-variable RET reverse-im-input-methods RET
-    ;; These store list variable in `custom-file'.
-    ;; provides autocompletion, one input-method at a time
-    M-x reverse-im-add-input-method RET russian-computer RET
+      ;; standard customization interface, note that this will turn on the mode immediately
+      M-x customize-variable RET reverse-im-input-methods RET
+      ;; These store list variable in `custom-file'.
+      ;; provides autocompletion, one input-method at a time
+      M-x reverse-im-add-input-method RET russian-computer RET
     #+END_SRC
 
     Since version 0.0.2 all possible bindings with Ctrl, Meta, and Super are translated.
     If you want to change it (e.g. you don't use Super)
     #+BEGIN_SRC emacs-lisp
-    (setq 'reverse-im-modifiers '(control meta))
-    ;; or
-    M-x customize-variable RET reverse-im-modifiers RET
+      (setq 'reverse-im-modifiers '(control meta))
+      ;; or
+      M-x customize-variable RET reverse-im-modifiers RET
     #+END_SRC
 
 
 *** Activation/Deactivation
 
     #+BEGIN_SRC emacs-lisp
-    M-x reverse-im-mode RET
-    ;; or
-    (reverse-im-mode t) ; call with a negative argument to disable
+      M-x reverse-im-mode RET
+      ;; or
+      (reverse-im-mode t) ; call with a negative argument to disable
     #+END_SRC
 
 
     Alternatively, you can directly call translation function:
     #+BEGIN_SRC emacs-lisp
-    (reverse-im-activate "russian-computer")
+      (reverse-im-activate "russian-computer")
     #+END_SRC
 
 
     Since version 0.0.3 it supports multiple input methods too:
     #+BEGIN_SRC emacs-lisp
-    (reverse-im-activate '("russian-computer" "ukrainian-computer"))
+      (reverse-im-activate '("russian-computer" "ukrainian-computer"))
     #+END_SRC
 
     If something goes wrong or you just want to turn translation off.
 
     #+BEGIN_SRC emacs-lisp
-    (reverse-im-deactivate)
-    ;; or
-    (reverse-im-deactivate t)
-    ;; to reset translation tables cache
+      (reverse-im-deactivate)
+      ;; or
+      (reverse-im-deactivate t)
+      ;; to reset translation tables cache
     #+END_SRC
 
 ** Known issues:
 
    - Bindings with AltGr (as Meta) [[https://github.com/a13/reverse-im.el/issues/4#issuecomment-308143947][don't work]] well on Windows.
+
+*** Advising read-char (new in 0.0.4)
+
+    Reverse-im doesn't work with custom dispatchers like org-export, org-capture etc, you can try to fix it by advising read-char-exclusive. Do it on your own risk since the feature is experimental and wasn't tested good enough.
+
+    #+BEGIN_SRC emacs-lisp
+      (advice-add 'read-char-exclusive :around #'reverse-im-read-char)
+    #+END_SRC
+
+    If something goes wrong, remove the advice by
+    #+BEGIN_SRC emacs-lisp
+      (advice-remove 'read-char-exclusive #'reverse-im-read-char)
+    #+END_SRC

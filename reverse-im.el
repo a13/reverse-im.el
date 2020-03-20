@@ -4,7 +4,7 @@
 ;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: i18n
 ;; Homepage: https://github.com/a13/reverse-im.el
-;; Version: 0.0.3
+;; Version: 0.0.4
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -183,6 +183,23 @@ Example usage: (reverse-im-activate \"russian-computer\")"
   (if reverse-im-mode
       (reverse-im-activate reverse-im-input-methods)
     (reverse-im-deactivate t)))
+
+;;; read-char hack
+;; use like (advice-add 'read-char-exclusive :around #'reverse-im-read-char)
+
+(defun reverse-im--translate-char (c)
+  "Try to translate C using active translation keymap."
+  (let ((to c))
+    (map-keymap #'(lambda (type value)
+                    (when (= c type)
+                      (setq to (aref value 0))))
+                (keymap-parent function-key-map))
+    to))
+
+(defun reverse-im-read-char (orig-fun &rest args)
+  "An advice for `read-char' compatible ORIG-FUN called with ARGS."
+  (let ((res (apply orig-fun args)))
+    (reverse-im--translate-char res)))
 
 
 (provide 'reverse-im)
