@@ -113,6 +113,7 @@
     #+END_SRC
 
 ** Char folding
+   [[./screenshots/char-fold.png]]
    Emacs supports [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Lax-Search.html#Lax-Search][Lax Matching During Searching]] and since version 27 you can include your own search substitutions. Reverse-im provides reverse-im-char-fold-include function to generate such list based on current translation keymap.
 
    #+BEGIN_SRC emacs-lisp
