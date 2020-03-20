@@ -85,6 +85,12 @@
     (reverse-im-activate "russian-computer")
     #+END_SRC
 
+
+    Since version 0.0.3 it supports multiple input methods too:
+    #+BEGIN_SRC emacs-lisp
+    (reverse-im-activate '("russian-computer" "ukrainian-computer"))
+    #+END_SRC
+
     If something goes wrong or you just want to turn translation off.
 
     #+BEGIN_SRC emacs-lisp

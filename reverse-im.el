@@ -4,7 +4,7 @@
 ;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: i18n
 ;; Homepage: https://github.com/a13/reverse-im.el
-;; Version: 0.0.2
+;; Version: 0.0.3
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
 ;; (use-package reverse-im
 ;;   :ensure t
 ;;   :custom
-;;   (reverse-im-input-methods '("russian-computer")) ; use your input-method here
+;;   (reverse-im-input-methods '("russian-computer")) ; use your input-method(s) here
 ;;   :config
 ;;   (reverse-im-mode t))
 
@@ -53,8 +53,8 @@
   "List of input methods to activate when minor-mode is on."
   :group 'reverse-im
   :set #'(lambda (symbol value)
-	   (set-default symbol value)
-           (mapc #'reverse-im-activate value))
+           (set-default symbol value)
+           (reverse-im-activate value))
   :type `(repeat (choice (const nil)
                          mule-input-method-string)))
 
@@ -138,10 +138,14 @@
 ;;; User-accessible functions
 
 (defun reverse-im-activate (input-method)
-  "Activate the reverse mapping for INPUT-METHOD.
+  "Activate the reverse mapping for INPUT-METHOD (can be a list).
 Example usage: (reverse-im-activate \"russian-computer\")"
-  (let ((new-parent (reverse-im--im-to-keymap input-method))
-        (old-parent (keymap-parent function-key-map)))
+  (let* ((input-methods (if (listp input-method)
+                            input-method
+                          (list input-method)))
+         (new-parent (make-composed-keymap
+                      (mapcar #'reverse-im--im-to-keymap input-methods)))
+         (old-parent (keymap-parent function-key-map)))
     (unless (equal new-parent old-parent)
       (setq reverse-im--default-parent old-parent)
       (set-keymap-parent function-key-map new-parent))))
@@ -177,8 +181,7 @@ Example usage: (reverse-im-activate \"russian-computer\")"
   :init-value nil
   :global t
   (if reverse-im-mode
-      ;; FIXME: only activates the last method
-      (mapc #'reverse-im-activate reverse-im-input-methods)
+      (reverse-im-activate reverse-im-input-methods)
     (reverse-im-deactivate t)))
 
 
