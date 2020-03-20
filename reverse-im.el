@@ -184,18 +184,72 @@ Example usage: (reverse-im-activate \"russian-computer\")"
       (reverse-im-activate reverse-im-input-methods)
     (reverse-im-deactivate t)))
 
-;;; read-char hack
-;; use like (advice-add 'read-char-exclusive :around #'reverse-im-read-char)
+;;; Translation functions
 
 (defun reverse-im--translate-char (c)
   "Try to translate C using active translation keymap."
-  (let ((to c))
-    (map-keymap #'(lambda (type value)
-                    (when (= c type)
-                      (setq to (aref value 0))))
+  (let ((to))
+    (map-keymap #'(lambda (from value)
+                    (when (characterp from)
+                      (if (= c from)
+                          (setq to (aref value 0))
+                        (when (member c (append value nil))
+                          (setq to from)))))
                 (keymap-parent function-key-map))
-    to))
+    (or to c)))
 
+(defun reverse-im-translate-string (s)
+  "Translate string S using active translation keymap."
+  (apply #'string
+         (mapcar #'reverse-im--translate-char s)))
+
+
+;;; Interactive translating
+;; loosely based on `cider--format-region'
+;; TODO: prefix argument to store selection
+;;;###autoload
+(defun reverse-im-translate-region (start end &optional _)
+  "Translate active region from START to END."
+  (interactive "r")
+  (when (region-active-p)
+    (let* ((original (buffer-substring-no-properties start end))
+           (translated (reverse-im-translate-string original)))
+      (unless (equal original translated)
+        (let* ((pos (point)))
+          (delete-region start end)
+          (insert translated)
+          (goto-char pos))))))
+
+;; loosely based on `transpose-subr'
+(defun reverse-im--translate-subr (mover arg)
+  "Subroutine to do the work of translating objects.
+Works for lines, sentences, paragraphs, etc.  MOVER is a function that
+moves forward by units of the given object (e.g. `forward-sentence',
+`forward-paragraph').  If ARG is an integer, moves the
+current object past ARG following (if ARG is positive) or
+preceding (if ARG is negative) objects, leaving point after the
+current object."
+  (let* ((pos1 (point))
+         (_ (funcall mover arg))
+         (pos2 (point))
+         (start (min pos1 pos2))
+         (end (max pos1 pos2))
+         (original (buffer-substring-no-properties start end))
+         (translated (reverse-im-translate-string original)))
+    (unless (equal original translated)
+      (delete-region start end)
+      (insert translated)
+      (goto-char pos1))))
+
+;;;###autoload
+(defun reverse-im-translate-word (arg)
+  "Translate word before the point.  With prefix ARG translates ARG words instead of the last one."
+  (interactive "p")
+  (reverse-im--translate-subr #'backward-word arg))
+
+
+;;; read-char hack
+;; use like (advice-add 'read-char-exclusive :around #'reverse-im-read-char)
 (defun reverse-im-read-char (orig-fun &rest args)
   "An advice for `read-char' compatible ORIG-FUN called with ARGS."
   (let ((res (apply orig-fun args)))
@@ -216,6 +270,7 @@ Example usage: (reverse-im-activate \"russian-computer\")"
              (cl-pushnew new-elt char-fold))))
      (keymap-parent function-key-map))
     char-fold))
+
 
 (provide 'reverse-im)
 

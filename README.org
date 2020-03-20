@@ -36,7 +36,19 @@
         (reverse-im-activate "russian-computer"))
     #+END_SRC
 
+    A more complex setup
 
+    #+BEGIN_SRC emacs-lisp
+      (use-package reverse-im
+        :ensure t
+        :bind
+        ("M-T" . reverse-im-translate-word)
+        :custom-update
+        (reverse-im-input-methods "russian-computer")
+        :config
+        (reverse-im-mode t)
+        (advice-add 'read-char-exclusive :around #'reverse-im-read-char))
+    #+END_SRC
 
 
 ** Usage
@@ -126,6 +138,11 @@
         :quelpa (char-fold :url "https://raw.githubusercontent.com/emacs-mirror/emacs/master/lisp/char-fold.el"
                            :fetcher url))
     #+END_SRC
+
+** Interactive translation
+   If you want to fix region or a word which was typed using incorrect layout, you can use interactive functions reverse-im-translate-region and reverse-im-translate-word respectively.
+
+
 
 ** Known issues:
 
