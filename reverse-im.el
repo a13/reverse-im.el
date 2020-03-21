@@ -225,15 +225,17 @@ Example usage: (reverse-im-activate \"russian-computer\")"
 ;;; Translation functions
 
 (defun reverse-im--translate-char (c &optional strict)
-  "Try to translate C using active translation.  Set STRICT if when reverse translation is not needed."
+  "Try to translate C using active translation.  Set STRICT if reverse translation is not needed."
   (let ((to))
     (map-keymap #'(lambda (from value)
-                    (when (characterp from)
-                      (if (= c from)
-                          (setq to (aref value 0))
-                        (when (and (not strict)
-                                   (member c (append value nil)))
-                          (setq to from)))))
+                    (if (= c from)
+                        (let ((v (aref value 0)))
+                          (when (characterp v)
+                            (setq to v)))
+                      (when (and (not strict)
+                                 (member c (append value nil))
+                                 (characterp from))
+                        (setq to from))))
                 (keymap-parent function-key-map))
     (or to c)))
 
