@@ -45,6 +45,7 @@
         :bind
         ("M-T" . reverse-im-translate-word)
         :custom
+        (reverse-im-char-fold t)
         (reverse-im-input-methods '("russian-computer"))
         :config
         (reverse-im-mode t)
@@ -115,13 +116,11 @@
 
 ** Char folding
    [[./screenshots/char-fold.png]]
-   Emacs supports [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Lax-Search.html#Lax-Search][Lax Matching During Searching]] and since version 27 you can include your own search substitutions. Reverse-im provides reverse-im-char-fold-include function to generate such list based on current translation keymap.
+   Emacs supports [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Lax-Search.html#Lax-Search][Lax Matching During Searching]] and since version 27 you can include your own search substitutions. Reverse-im adds generaged with reverse-im-char-fold-include substitutions to char-fold-include if reverse-im-char-fold is set to t (before reverse-im-mode is activated).
 
    #+BEGIN_SRC emacs-lisp
      (use-package char-fold
-       :after reverse-im
        :custom
-       (char-fold-include (reverse-im-char-fold-include))
        (char-fold-symmetric t)
        (search-default-mode #'char-fold-to-regexp))
    #+END_SRC
@@ -130,10 +129,7 @@
     You can download the new version of char-fold.el manually, or using something like
     #+BEGIN_SRC emacs-lisp
       (use-package char-fold
-        :after reverse-im
         :custom
-        (char-fold-include (append char-fold--default-include
-                                   (reverse-im-char-fold-include)))
         (char-fold-symmetric t)
         (search-default-mode #'char-fold-to-regexp)
         :quelpa (char-fold :url "https://raw.githubusercontent.com/emacs-mirror/emacs/master/lisp/char-fold.el"

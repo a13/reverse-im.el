@@ -61,10 +61,20 @@
   :type '(repeat symbol)
   :group 'reverse-im)
 
+(defcustom reverse-im-char-fold
+  nil
+  "Activate reverse mappings for char-fold."
+  :type 'boolean
+  :group 'reverse-im)
+
 ;;; Storage vars
 (defvar reverse-im--default-parent
   nil
-  "The default value of the `function-key-map' parent keymap.")
+  "The default value of `function-key-map' parent keymap.")
+
+(defvar reverse-im--char-fold-include
+  nil
+  "The default value of `char-fold-include'.")
 
 (defvar reverse-im--keymaps-alist
   nil
@@ -173,14 +183,44 @@ Example usage: (reverse-im-activate \"russian-computer\")"
                               (reverse-im--im-to-keymap input-method))
     (message "which-key is not installed.")))
 
+
+;;; char-folding
+(defun reverse-im-char-fold-include ()
+  "Generate a substitutions list for `char-fold-include'."
+  (let ((char-fold '()))
+    (map-keymap
+     #'(lambda (from value)
+         (when (and (characterp from)
+                    (vectorp value))
+           (let* ((fold (mapcar #'string
+                                (cl-remove-if-not #'characterp value)))
+                  (new-elt (append (list from) fold nil)))
+             (cl-pushnew new-elt char-fold))))
+     (keymap-parent function-key-map))
+    char-fold))
+
+(defun reverse-im--char-fold-p ()
+  "Check if we have new char-fold.el."
+  (and reverse-im-char-fold
+       (require 'char-fold nil t)
+       (boundp 'char-fold-include)))
+
 ;;;###autoload
 (define-minor-mode reverse-im-mode
   "Toggle reverse-im mode."
   :init-value nil
   :global t
   (if reverse-im-mode
-      (reverse-im-activate reverse-im-input-methods)
-    (reverse-im-deactivate t)))
+      (progn
+        (reverse-im-activate reverse-im-input-methods)
+        (when (reverse-im--char-fold-p)
+          (setq reverse-im--char-fold-include char-fold-include)
+          (customize-set-variable 'char-fold-include
+                                  (append char-fold-include
+                                          (reverse-im-char-fold-include)))))
+    (reverse-im-deactivate t)
+    (when (reverse-im--char-fold-p)
+      (customize-set-variable 'char-fold-include reverse-im--char-fold-include))))
 
 ;;; Translation functions
 
@@ -252,23 +292,6 @@ current object."
   "An advice for `read-char' compatible ORIG-FUN called with ARGS."
   (let ((res (apply orig-fun args)))
     (reverse-im--translate-char res)))
-
-
-;;; char-folding
-(defun reverse-im-char-fold-include ()
-  "Generate a substitutions list for `char-fold-include'."
-  (let ((char-fold '()))
-    (map-keymap
-     #'(lambda (from value)
-         (when (and (characterp from)
-                    (vectorp value))
-           (let* ((fold (mapcar #'string
-                                (cl-remove-if-not #'characterp value)))
-                  (new-elt (append (list from) fold nil)))
-             (cl-pushnew new-elt char-fold))))
-     (keymap-parent function-key-map))
-    char-fold))
-
 
 (provide 'reverse-im)
 
