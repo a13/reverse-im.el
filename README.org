@@ -40,6 +40,7 @@
 
     #+BEGIN_SRC emacs-lisp
       (use-package reverse-im
+        :demand t ; since :bind implies :defer
         :ensure t
         :bind
         ("M-T" . reverse-im-translate-word)
