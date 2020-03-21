@@ -187,16 +187,19 @@ Example usage: (reverse-im-activate \"russian-computer\")"
 ;;; char-folding
 (defun reverse-im-char-fold-include ()
   "Generate a substitutions list for `char-fold-include'."
-  (let ((char-fold '()))
-    (map-keymap
-     #'(lambda (from value)
-         (when (and (characterp from)
-                    (vectorp value))
-           (let* ((fold (mapcar #'string
-                                (cl-remove-if-not #'characterp value)))
-                  (new-elt (append (list from) fold nil)))
-             (cl-pushnew new-elt char-fold))))
-     (keymap-parent function-key-map))
+  (let ((char-fold '())
+        (parent (keymap-parent function-key-map)))
+    (if parent
+        (map-keymap
+         #'(lambda (from value)
+             (when (and (characterp from)
+                        (vectorp value))
+               (let* ((fold (mapcar #'string
+                                    (cl-remove-if-not #'characterp value)))
+                      (new-elt (append (list from) fold nil)))
+                 (cl-pushnew new-elt char-fold))))
+         parent)
+      (message "Keymap is nil, is reverse-im-mode enabled?"))
     char-fold))
 
 (defun reverse-im--char-fold-p ()
@@ -226,18 +229,22 @@ Example usage: (reverse-im-activate \"russian-computer\")"
 
 (defun reverse-im--translate-char (c &optional strict)
   "Try to translate C using active translation.  Set STRICT if reverse translation is not needed."
-  (let ((to))
-    (map-keymap #'(lambda (from value)
-                    (if (= c from)
-                        (let ((v (aref value 0)))
-                          (when (characterp v)
-                            (setq to v)))
-                      (when (and (not strict)
-                                 (member c (append value nil))
-                                 (characterp from))
-                        (setq to from))))
-                (keymap-parent function-key-map))
+  (let ((to)
+        (parent (keymap-parent function-key-map)))
+    (if parent
+        (map-keymap #'(lambda (from value)
+                        (if (= c from)
+                            (let ((v (aref value 0)))
+                              (when (characterp v)
+                                (setq to v)))
+                          (when (and (not strict)
+                                     (member c (append value nil))
+                                     (characterp from))
+                            (setq to from))))
+                    parent)
+      (message "Keymap is nil, is reverse-im-mode enabled?"))
     (or to c)))
+
 
 (defun reverse-im-translate-string (s)
   "Translate string S using active translation keymap."
