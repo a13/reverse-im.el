@@ -224,24 +224,15 @@ Example usage: (reverse-im-activate \"russian-computer\")"
 
 ;;; Translation functions
 
-(defun reverse-im--translate-char-strict (c)
-  "Try to translate C using active translation keymap."
-  (let ((to))
-    (map-keymap #'(lambda (from value)
-                    (when (and (characterp from)
-                               (= c from))
-                      (setq to (aref value 0))))
-                (keymap-parent function-key-map))
-    (or to c)))
-
-(defun reverse-im--translate-char (c)
-  "Try to translate C using active translation keymap in both ways."
+(defun reverse-im--translate-char (c &optional strict)
+  "Try to translate C using active translation.  Set STRICT if when reverse translation is not needed."
   (let ((to))
     (map-keymap #'(lambda (from value)
                     (when (characterp from)
                       (if (= c from)
                           (setq to (aref value 0))
-                        (when (member c (append value nil))
+                        (when (and (not strict)
+                                   (member c (append value nil)))
                           (setq to from)))))
                 (keymap-parent function-key-map))
     (or to c)))
@@ -301,7 +292,7 @@ current object."
 (defun reverse-im-read-char (orig-fun &rest args)
   "An advice for `read-char' compatible ORIG-FUN called with ARGS."
   (let ((res (apply orig-fun args)))
-    (reverse-im--translate-char-strict res)))
+    (reverse-im--translate-char res t)))
 
 (provide 'reverse-im)
 
