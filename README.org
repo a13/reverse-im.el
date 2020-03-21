@@ -147,13 +147,15 @@
 
 *** Advising read-char (new in 0.0.4)
 
-    Reverse-im doesn't work with custom dispatchers like org-export, org-capture etc, you can try to fix it by advising read-char-exclusive. Do it on your own risk since the feature is experimental and wasn't tested good enough.
+    Reverse-im doesn't work with custom dispatchers like org-export, org-capture , mu4e etc, you can try to fix it by advising read-char and read-char-exclusive. Do it on your own risk since the feature is experimental and wasn't tested good enough.
 
     #+BEGIN_SRC emacs-lisp
       (advice-add 'read-char-exclusive :around #'reverse-im-read-char)
+      (advice-add 'read-char :around #'reverse-im-read-char)
     #+END_SRC
 
     If something goes wrong, remove the advice by
     #+BEGIN_SRC emacs-lisp
       (advice-remove 'read-char-exclusive #'reverse-im-read-char)
+      (advice-remove 'read-char #'reverse-im-read-char)
     #+END_SRC
