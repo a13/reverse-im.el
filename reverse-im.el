@@ -48,6 +48,13 @@
   "Translate input methods."
   :group 'I18n)
 
+(defcustom reverse-im-input-methods
+  nil
+  "List of input methods to activate when minor-mode is on."
+  :group 'reverse-im
+  :type `(repeat (choice (const nil)
+                         mule-input-method-string)))
+
 (defcustom reverse-im-modifiers
   '(control meta super)
   "List of modifiers to translate with."
@@ -145,17 +152,6 @@ Example usage: (reverse-im-activate \"russian-computer\")"
   (set-keymap-parent function-key-map reverse-im--default-parent)
   (when reset
     (setq reverse-im--keymaps-alist nil)))
-
-(defcustom reverse-im-input-methods
-  nil
-  "List of input methods to activate when minor-mode is on."
-  :group 'reverse-im
-  :set #'(lambda (symbol value)
-           (set-default symbol value)
-           (reverse-im-activate value))
-  :type `(repeat (choice (const nil)
-                         mule-input-method-string)))
-
 
 
 ;;;###autoload
