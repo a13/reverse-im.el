@@ -120,8 +120,7 @@
      (use-package char-fold
        :after reverse-im
        :custom
-       (char-fold-include (append char-fold--default-include
-                                  (reverse-im-char-fold-include)))
+       (char-fold-include (reverse-im-char-fold-include))
        (char-fold-symmetric t)
        (search-default-mode #'char-fold-to-regexp))
    #+END_SRC
