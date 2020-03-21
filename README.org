@@ -23,7 +23,7 @@
         :ensure t
         :custom
         (reverse-im-input-methods '("russian-computer"))
-        :config
+        :init
         (reverse-im-mode t))
     #+END_SRC
 
@@ -43,9 +43,9 @@
         :ensure t
         :bind
         ("M-T" . reverse-im-translate-word)
-        :custom-update
-        (reverse-im-input-methods "russian-computer")
-        :config
+        :custom
+        (reverse-im-input-methods '("russian-computer"))
+        :init
         (reverse-im-mode t)
         (advice-add 'read-char-exclusive :around #'reverse-im-read-char))
     #+END_SRC
