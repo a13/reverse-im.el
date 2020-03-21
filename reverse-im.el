@@ -224,8 +224,18 @@ Example usage: (reverse-im-activate \"russian-computer\")"
 
 ;;; Translation functions
 
-(defun reverse-im--translate-char (c)
+(defun reverse-im--translate-char-strict (c)
   "Try to translate C using active translation keymap."
+  (let ((to))
+    (map-keymap #'(lambda (from value)
+                    (when (and (characterp from)
+                               (= c from))
+                      (setq to (aref value 0))))
+                (keymap-parent function-key-map))
+    (or to c)))
+
+(defun reverse-im--translate-char (c)
+  "Try to translate C using active translation keymap in both ways."
   (let ((to))
     (map-keymap #'(lambda (from value)
                     (when (characterp from)
@@ -268,7 +278,7 @@ current object past ARG following (if ARG is positive) or
 preceding (if ARG is negative) objects, leaving point after the
 current object."
   (let* ((pos1 (point))
-         (_ (funcall mover arg))
+         (_ (funcall mover arg))зззз
          (pos2 (point))
          (start (min pos1 pos2))
          (end (max pos1 pos2))
@@ -291,7 +301,7 @@ current object."
 (defun reverse-im-read-char (orig-fun &rest args)
   "An advice for `read-char' compatible ORIG-FUN called with ARGS."
   (let ((res (apply orig-fun args)))
-    (reverse-im--translate-char res)))
+    (reverse-im--translate-char-strict res)))
 
 (provide 'reverse-im)
 
