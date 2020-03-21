@@ -4,7 +4,7 @@
 ;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: i18n
 ;; Homepage: https://github.com/a13/reverse-im.el
-;; Version: 0.0.5
+;; Version: 0.0.6
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
