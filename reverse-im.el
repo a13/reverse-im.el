@@ -152,7 +152,7 @@ Example usage: (reverse-im-activate \"russian-computer\")"
   :group 'reverse-im
   :set #'(lambda (symbol value)
            (set-default symbol value)
-           (mapc #'reverse-im-activate value))
+           (reverse-im-activate value))
   :type `(repeat (choice (const nil)
                          mule-input-method-string)))
 
