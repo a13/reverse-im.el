@@ -49,7 +49,8 @@
         (reverse-im-input-methods '("russian-computer"))
         :config
         (reverse-im-mode t)
-        (advice-add 'read-char-exclusive :around #'reverse-im-read-char))
+        (advice-add 'read-char :around #'reverse-im-read-char-include)
+        (advice-add 'read-char-exclusive :around #'reverse-im-read-char-include))
     #+END_SRC
 
 
