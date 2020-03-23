@@ -140,6 +140,11 @@
 ** Interactive translation
    If you want to fix region or a word which was typed using incorrect layout, you can use interactive functions reverse-im-translate-region and reverse-im-translate-word respectively.
 
+*** [[https://github.com/abo-abo/avy][Avy]] integration
+
+    [[./screenshots/avy.png]]
+
+    Reverse-im adds (if avy is available) avy-action-reverse-im-translate to avy-dispatch-alist (bound to "T" key), so it's possible to translate words and lines which are you jumping to.
 
 
 ** Known issues:

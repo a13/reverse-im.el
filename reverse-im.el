@@ -311,6 +311,24 @@ current object."
     (reverse-im--translate-subr #'backward-word arg)))
 
 
+;; Avy action
+(when (require 'avy nil t)
+  (defun avy-action-reverse-im-translate (pt)
+    "Auto translate word at PT."
+    (save-excursion
+      (goto-char pt)
+      (cond
+       ((eq avy-command 'avy-goto-line)
+        (reverse-im-translate-region (line-beginning-position) (line-end-position) t))
+       ((looking-at-p "\\b")
+        (reverse-im--translate-subr #'forward-word 1))
+       (t (progn
+            (backward-word)
+            (when (looking-at-p "\\b")
+              (reverse-im--translate-subr #'forward-word 1)))))))
+
+  (cl-pushnew (cons ?T 'avy-action-reverse-im-translate) avy-dispatch-alist))
+
 ;;; read-char hacks
 ;; use like (advice-add 'read-char-exclusive :around #'reverse-im-read-char-include)
 
