@@ -67,6 +67,14 @@
   :type 'boolean
   :group 'reverse-im)
 
+(defcustom reverse-im-read-char-advice-function
+  nil
+  "Advice `read-char'-like functions if not nil."
+  :type '(choice (const :tag "Don't advice" nil)
+                 (const :tag "Include mode" reverse-im-read-char-include)
+                 (const :tag "Exclude mode" reverse-im-read-char-exclude))
+  :group 'reverse-im)
+
 (defcustom reverse-im-read-char-exclude-commands
   '("^avy-.*")
   "List of regexp or commands to match `this-command' to exclude when using `reverse-im-read-char-exclude'."
@@ -220,6 +228,33 @@ Example usage: (reverse-im-activate \"russian-computer\")"
        (require 'char-fold nil t)
        (boundp 'char-fold-include)))
 
+;;; read-char hacks
+
+(defun reverse-im--read-char-includes-p (command-list)
+  "Check whether `this-command' matches any of COMMAND-LIST elements."
+  (seq-some (lambda (x)
+              (or (and (symbolp x)
+                       (eq this-command x))
+                  (let ((this-command-name (symbol-name this-command)))
+                    (when (stringp x)
+                      (string-match-p x this-command-name)))))
+            command-list))
+
+
+(defun reverse-im-read-char-include (orig-fun &rest args)
+  "An advice for `read-char' compatible ORIG-FUN called with ARGS.  Translate chars only when `this-command' is in `reverse-im-read-char-include-commands'."
+  (let ((res (apply orig-fun args)))
+    (if (reverse-im--read-char-includes-p reverse-im-read-char-include-commands)
+        (reverse-im--translate-char res t)
+      res)))
+
+(defun reverse-im-read-char-exclude (orig-fun &rest args)
+  "An advice for `read-char' compatible ORIG-FUN called with ARGS.  Translate all chars, unless `this-command' is not in `reverse-im-read-char-exclude-commands'."
+  (let ((res (apply orig-fun args)))
+    (if (reverse-im--read-char-includes-p reverse-im-read-char-exclude-commands)
+        res
+      (reverse-im--translate-char res t))))
+
 ;;;###autoload
 (define-minor-mode reverse-im-mode
   "Toggle reverse-im mode."
@@ -232,10 +267,16 @@ Example usage: (reverse-im-activate \"russian-computer\")"
           (setq reverse-im--char-fold-include char-fold-include)
           (customize-set-variable 'char-fold-include
                                   (append char-fold-include
-                                          (reverse-im-char-fold-include)))))
+                                          (reverse-im-char-fold-include))))
+        (when reverse-im-read-char-advice-function
+          (advice-add 'read-char :around reverse-im-read-char-advice-function)
+          (advice-add 'read-char-exclusive :around reverse-im-read-char-advice-function)))
     (reverse-im-deactivate t)
     (when (reverse-im--char-fold-p)
-      (customize-set-variable 'char-fold-include reverse-im--char-fold-include))))
+      (customize-set-variable 'char-fold-include reverse-im--char-fold-include))
+    (when reverse-im-read-char-advice-function
+      (advice-remove 'read-char reverse-im-read-char-advice-function)
+      (advice-remove 'read-char-exclusive reverse-im-read-char-advice-function))))
 
 ;;; Translation functions
 
@@ -328,34 +369,6 @@ current object."
               (reverse-im--translate-subr #'forward-word 1)))))))
 
   (cl-pushnew (cons ?T 'avy-action-reverse-im-translate) avy-dispatch-alist))
-
-;;; read-char hacks
-;; use like (advice-add 'read-char-exclusive :around #'reverse-im-read-char-include)
-
-(defun reverse-im--read-char-includes-p (command-list)
-  "Check whether `this-command' matches any of COMMAND-LIST elements."
-  (seq-some (lambda (x)
-              (or (and (symbolp x)
-                       (eq this-command x))
-                  (let ((this-command-name (symbol-name this-command)))
-                    (when (stringp x)
-                      (string-match-p x this-command-name)))))
-            command-list))
-
-
-(defun reverse-im-read-char-include (orig-fun &rest args)
-  "An advice for `read-char' compatible ORIG-FUN called with ARGS.  Translate chars only when `this-command' is in `reverse-im-read-char-include-commands'."
-  (let ((res (apply orig-fun args)))
-    (if (reverse-im--read-char-includes-p reverse-im-read-char-include-commands)
-        (reverse-im--translate-char res t)
-      res)))
-
-(defun reverse-im-read-char-exclude (orig-fun &rest args)
-  "An advice for `read-char' compatible ORIG-FUN called with ARGS.  Translate all chars, unless `this-command' is not in `reverse-im-read-char-exclude-commands'."
-  (let ((res (apply orig-fun args)))
-    (if (reverse-im--read-char-includes-p reverse-im-read-char-exclude-commands)
-        res
-      (reverse-im--translate-char res t))))
 
 
 (provide 'reverse-im)

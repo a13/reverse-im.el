@@ -40,17 +40,17 @@
 
     #+BEGIN_SRC emacs-lisp
       (use-package reverse-im
-        :demand t ; since :bind implies :defer
         :ensure t
+        :demand t
+        :after unipunct char-fold
         :bind
         ("M-T" . reverse-im-translate-word)
         :custom
         (reverse-im-char-fold t)
+        (reverse-im-read-char-advice-function #'reverse-im-read-char-exclude)
         (reverse-im-input-methods '("russian-computer"))
         :config
-        (reverse-im-mode t)
-        (advice-add 'read-char :around #'reverse-im-read-char-include)
-        (advice-add 'read-char-exclusive :around #'reverse-im-read-char-include))
+        (reverse-im-mode t))
     #+END_SRC
 
 
@@ -115,16 +115,36 @@
       ;; to reset translation tables cache
     #+END_SRC
 
-** Char folding
-   [[./screenshots/char-fold.png]]
-   Emacs supports [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Lax-Search.html#Lax-Search][Lax Matching During Searching]] and since version 27 you can include your own search substitutions. Reverse-im adds generaged with reverse-im-char-fold-include substitutions to char-fold-include if reverse-im-char-fold is set to t (before reverse-im-mode is activated).
+*** Advising read-char
 
-   #+BEGIN_SRC emacs-lisp
-     (use-package char-fold
-       :custom
-       (char-fold-symmetric t)
-       (search-default-mode #'char-fold-to-regexp))
-   #+END_SRC
+    Reverse-im doesn't work with custom dispatchers like org-export, org-capture , mu4e etc, you can try to fix it by advising read-char and read-char-exclusive. Do it on your own risk since the feature is experimental and wasn't tested good enough.
+
+    There are two versions of advice functions - reverse-im-read-char-include and reverse-im-read-char-exclude, you can choose which one to use by customizing reverse-im-read-char-advice-function before reverse-im-mode is enabled.
+
+    The first (less risky one) translates iff current command matches (equals or matches regexp) any element of customizable reverse-im-read-char-include-commands list.
+
+    While another (more risky one) translates all chars unless current command does match reverse-im-read-char-exclude-commands list.
+
+    If something goes wrong, remove the advices by
+    #+BEGIN_SRC emacs-lisp
+      (advice-remove 'read-char-exclusive #'reverse-im-read-char-include)
+      (advice-remove 'read-char #'reverse-im-read-char-include)
+    #+END_SRC
+    or
+    #+BEGIN_SRC emacs-lisp
+      (advice-remove 'read-char-exclusive #'reverse-im-read-char)
+      (advice-remove 'read-char #'reverse-im-read-char)
+    #+END_SRC
+*** Char folding
+    [[./screenshots/char-fold.png]]
+    Emacs supports [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Lax-Search.html#Lax-Search][Lax Matching During Searching]] and since version 27 you can include your own search substitutions. Reverse-im adds generaged with reverse-im-char-fold-include substitutions to char-fold-include if reverse-im-char-fold is set to t (before reverse-im-mode is activated).
+
+    #+BEGIN_SRC emacs-lisp
+      (use-package char-fold
+        :custom
+        (char-fold-symmetric t)
+        (search-default-mode #'char-fold-to-regexp))
+    #+END_SRC
 
 *** pre-27 versions
     You can download the new version of char-fold.el manually, or using something like
@@ -138,7 +158,7 @@
     #+END_SRC
 
 ** Interactive translation
-   If you want to fix region or a word which was typed using incorrect layout, you can use interactive functions reverse-im-translate-region and reverse-im-translate-word respectively.
+   If you want to fix region or a word which was typed using incorrect layout, you can use interactive functions reverse-im-translate-region and reverse-im-translate-word respectively. These work even when reverse-im-mode is off.
 
 *** [[https://github.com/abo-abo/avy][Avy]] integration
 
@@ -150,33 +170,3 @@
 ** Known issues:
 
    - Bindings with AltGr (as Meta) [[https://github.com/a13/reverse-im.el/issues/4#issuecomment-308143947][don't work]] well on Windows.
-
-*** Advising read-char
-
-    Reverse-im doesn't work with custom dispatchers like org-export, org-capture , mu4e etc, you can try to fix it by advising read-char and read-char-exclusive. Do it on your own risk since the feature is experimental and wasn't tested good enough.
-
-    There are two versions of advice functions, the first (less risky one) translates iff current command matches (equals or matches regexp) any element of customizable reverse-im-read-char-include-commands list.
-
-    #+BEGIN_SRC emacs-lisp
-      (advice-add 'read-char :around #'reverse-im-read-char-include)
-      (advice-add 'read-char-exclusive :around #'reverse-im-read-char-include)
-    #+END_SRC
-
-    While another (more risky one) translates all chars unless current command does match reverse-im-read-char-exclude-commands list.
-
-    #+BEGIN_SRC emacs-lisp
-      (advice-add 'read-char :around #'reverse-im-read-char-exclude)
-      (advice-add 'read-char-exclusive :around #'reverse-im-read-char-exclude)
-    #+END_SRC
-
-
-    If something goes wrong, remove the advice by
-    #+BEGIN_SRC emacs-lisp
-      (advice-remove 'read-char-exclusive #'reverse-im-read-char-include)
-      (advice-remove 'read-char #'reverse-im-read-char-include)
-    #+END_SRC
-    or
-    #+BEGIN_SRC emacs-lisp
-      (advice-remove 'read-char-exclusive #'reverse-im-read-char-exclude)
-      (advice-remove 'read-char #'reverse-im-read-char-exclude)
-    #+END_SRC
