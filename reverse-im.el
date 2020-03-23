@@ -4,7 +4,7 @@
 ;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: i18n
 ;; Homepage: https://github.com/a13/reverse-im.el
-;; Version: 0.0.6
+;; Version: 0.0.7
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -66,6 +66,18 @@
   "Activate reverse mappings for char-fold."
   :type 'boolean
   :group 'reverse-im)
+
+(defcustom reverse-im-read-char-exclude-commands
+  '("^avy-.*")
+  "List of regexp or commands to match `this-command' to exclude when using `reverse-im-read-char-exclude'."
+  :group 'reverse-im
+  :type `(repeat (choice regexp symbol)))
+
+(defcustom reverse-im-read-char-include-commands
+  '("^mu4e-.*" org-capture org-export-dispatch)
+  "List of regexp or commands to match `this-command' to include when using `reverse-im-read-char-include'."
+  :group 'reverse-im
+  :type `(repeat (choice regexp symbol)))
 
 ;;; Storage vars
 (defvar reverse-im--default-parent
@@ -256,10 +268,11 @@ Example usage: (reverse-im-activate \"russian-computer\")"
 ;; loosely based on `cider--format-region'
 ;; TODO: prefix argument to store selection
 ;;;###autoload
-(defun reverse-im-translate-region (start end &optional _)
-  "Translate active region from START to END."
+(defun reverse-im-translate-region (start end &optional force)
+  "Translate active region from START to END.  FORCE translate even if the region isn't active."
   (interactive "r")
-  (when (region-active-p)
+  (when (or (region-active-p)
+            force)
     (let* ((original (buffer-substring-no-properties start end))
            (translated (reverse-im-translate-string original)))
       (unless (equal original translated)
@@ -278,7 +291,7 @@ current object past ARG following (if ARG is positive) or
 preceding (if ARG is negative) objects, leaving point after the
 current object."
   (let* ((pos1 (point))
-         (_ (funcall mover arg))зззз
+         (_ (funcall mover arg))
          (pos2 (point))
          (start (min pos1 pos2))
          (end (max pos1 pos2))
@@ -291,17 +304,41 @@ current object."
 
 ;;;###autoload
 (defun reverse-im-translate-word (arg)
-  "Translate word before the point.  With prefix ARG translates ARG words instead of the last one."
+  "Translate word before the point.  With prefix ARG translates ARG words instead of the last one, if ARG is - translate until the beginning of line."
   (interactive "p")
-  (reverse-im--translate-subr #'backward-word arg))
+  (if (eq 0 arg)
+      (reverse-im--translate-subr #'move-beginning-of-line 1)
+    (reverse-im--translate-subr #'backward-word arg)))
 
 
-;;; read-char hack
-;; use like (advice-add 'read-char-exclusive :around #'reverse-im-read-char)
-(defun reverse-im-read-char (orig-fun &rest args)
-  "An advice for `read-char' compatible ORIG-FUN called with ARGS."
+;;; read-char hacks
+;; use like (advice-add 'read-char-exclusive :around #'reverse-im-read-char-include)
+
+(defun reverse-im--read-char-includes-p (command-list)
+  "Check whether `this-command' matches any of COMMAND-LIST elements."
+  (seq-some (lambda (x)
+              (or (and (symbolp x)
+                       (eq this-command x))
+                  (let ((this-command-name (symbol-name this-command)))
+                    (when (stringp x)
+                      (string-match-p x this-command-name)))))
+            command-list))
+
+
+(defun reverse-im-read-char-include (orig-fun &rest args)
+  "An advice for `read-char' compatible ORIG-FUN called with ARGS.  Translate chars only when `this-command' is in `reverse-im-read-char-include-commands'."
   (let ((res (apply orig-fun args)))
-    (reverse-im--translate-char res t)))
+    (if (reverse-im--read-char-includes-p reverse-im-read-char-include-commands)
+        (reverse-im--translate-char res t)
+      res)))
+
+(defun reverse-im-read-char-exclude (orig-fun &rest args)
+  "An advice for `read-char' compatible ORIG-FUN called with ARGS.  Translate all chars, unless `this-command' is not in `reverse-im-read-char-exclude-commands'."
+  (let ((res (apply orig-fun args)))
+    (if (reverse-im--read-char-includes-p reverse-im-read-char-exclude-commands)
+        res
+      (reverse-im--translate-char res t))))
+
 
 (provide 'reverse-im)
 

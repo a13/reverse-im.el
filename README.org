@@ -145,17 +145,32 @@
 
    - Bindings with AltGr (as Meta) [[https://github.com/a13/reverse-im.el/issues/4#issuecomment-308143947][don't work]] well on Windows.
 
-*** Advising read-char (new in 0.0.4)
+*** Advising read-char
 
     Reverse-im doesn't work with custom dispatchers like org-export, org-capture , mu4e etc, you can try to fix it by advising read-char and read-char-exclusive. Do it on your own risk since the feature is experimental and wasn't tested good enough.
 
+    There are two versions of advice functions, the first (less risky one) translates iff current command matches (equals or matches regexp) any element of customizable reverse-im-read-char-include-commands list.
+
     #+BEGIN_SRC emacs-lisp
-      (advice-add 'read-char-exclusive :around #'reverse-im-read-char)
-      (advice-add 'read-char :around #'reverse-im-read-char)
+      (advice-add 'read-char :around #'reverse-im-read-char-include)
+      (advice-add 'read-char-exclusive :around #'reverse-im-read-char-include)
     #+END_SRC
+
+    While another (more risky one) translates all chars unless current command does match reverse-im-read-char-exclude-commands list.
+
+    #+BEGIN_SRC emacs-lisp
+      (advice-add 'read-char :around #'reverse-im-read-char-exclude)
+      (advice-add 'read-char-exclusive :around #'reverse-im-read-char-exclude)
+    #+END_SRC
+
 
     If something goes wrong, remove the advice by
     #+BEGIN_SRC emacs-lisp
-      (advice-remove 'read-char-exclusive #'reverse-im-read-char)
-      (advice-remove 'read-char #'reverse-im-read-char)
+      (advice-remove 'read-char-exclusive #'reverse-im-read-char-include)
+      (advice-remove 'read-char #'reverse-im-read-char-include)
+    #+END_SRC
+    or
+    #+BEGIN_SRC emacs-lisp
+      (advice-remove 'read-char-exclusive #'reverse-im-read-char-exclude)
+      (advice-remove 'read-char #'reverse-im-read-char-exclude)
     #+END_SRC
