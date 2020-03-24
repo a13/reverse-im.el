@@ -158,15 +158,16 @@
     #+END_SRC
 
 ** Interactive translation
-   If you want to fix region or a word which was typed using incorrect layout, you can use interactive functions reverse-im-translate-region and reverse-im-translate-word respectively. These work even when reverse-im-mode is off.
+   If you want to fix region or a word which was typed using incorrect layout, you can use interactive functions reverse-im-translate-region and reverse-im-translate-word respectively.
 
 *** [[https://github.com/abo-abo/avy][Avy]] integration
 
     [[./screenshots/avy.png]]
 
-    Reverse-im adds (if avy is available) avy-action-reverse-im-translate to avy-dispatch-alist (bound to "T" key), so it's possible to translate words and lines which are you jumping to.
+    Reverse-im adds (if avy is available) avy-action-reverse-im-translate to avy-dispatch-alist (bound to reverse-im-avy-action-char, ?T is default one), so it's possible to translate words and lines which are you jumping to. To disable the functionality set reverse-im-avy-action-char to nil.
 
 
 ** Known issues:
 
    - Bindings with AltGr (as Meta) [[https://github.com/a13/reverse-im.el/issues/4#issuecomment-308143947][don't work]] well on Windows.
+   - Single key shortcuts (i.e. without modifiers) [[https://github.com/a13/reverse-im.el/issues/17][don't work with]] in Hydra and some other modes (org-agenda).

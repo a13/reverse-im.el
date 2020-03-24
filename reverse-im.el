@@ -67,6 +67,12 @@
   :type 'boolean
   :group 'reverse-im)
 
+(defcustom reverse-im-avy-action-char
+  ?T
+  "Char for avy-action-reverse-im-translate."
+  :type 'character
+  :group 'reverse-im)
+
 (defcustom reverse-im-read-char-advice-function
   nil
   "Advice `read-char'-like functions if not nil."
@@ -353,7 +359,8 @@ current object."
 
 
 ;; Avy action
-(when (require 'avy nil t)
+(when (and reverse-im-avy-action-char
+           (require 'avy nil t))
   (defun avy-action-reverse-im-translate (pt)
     "Auto translate word at PT."
     (save-excursion
@@ -368,7 +375,7 @@ current object."
             (when (looking-at-p "\\b")
               (reverse-im--translate-subr #'forward-word 1)))))))
 
-  (cl-pushnew (cons ?T 'avy-action-reverse-im-translate) avy-dispatch-alist))
+  (cl-pushnew (cons reverse-im-avy-action-char 'avy-action-reverse-im-translate) avy-dispatch-alist))
 
 
 (provide 'reverse-im)
