@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; For a full copy of the GNU General Public License
-;; see <http://www.gnu.org/licenses/>.
+;; see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;; Overrides `function-key-map' parent for preferred input-method
@@ -133,7 +133,7 @@
             [,(append mod (list keychar))]))
         (reverse-im--modifiers-combos reverse-im-modifiers))))
 
-(cl-defun reverse-im--key-def ((keychar def &rest _skip))
+(cl-defun reverse-im--key-def ((keychar def &rest skip))
   "Return a list of `define-key' '(key def) arguments for quail KEYCHAR and DEF."
   (let ((translation (quail-get-translation def (char-to-string keychar) 1)))
     (cond ((and translation (characterp translation))
@@ -217,13 +217,13 @@ Example usage: (reverse-im-activate \"russian-computer\")"
         (parent (keymap-parent function-key-map)))
     (if parent
         (map-keymap
-         #'(lambda (from value)
-             (when (and (characterp from)
-                        (vectorp value))
-               (let* ((fold (mapcar #'string
-                                    (cl-remove-if-not #'characterp value)))
-                      (new-elt (append (list from) fold nil)))
-                 (cl-pushnew new-elt char-fold))))
+         (lambda (from value)
+           (when (and (characterp from)
+                      (vectorp value))
+             (let* ((fold (mapcar #'string
+                                  (cl-remove-if-not #'characterp value)))
+                    (new-elt (append (list from) fold nil)))
+               (cl-pushnew new-elt char-fold))))
          parent)
       (message "Keymap is nil, is reverse-im-mode enabled?"))
     char-fold))
@@ -275,8 +275,8 @@ Example usage: (reverse-im-activate \"russian-computer\")"
                                   (append char-fold-include
                                           (reverse-im-char-fold-include))))
         (when reverse-im-read-char-advice-function
-          (advice-add 'read-char :around reverse-im-read-char-advice-function)
-          (advice-add 'read-char-exclusive :around reverse-im-read-char-advice-function)))
+          (advice-add #'read-char :around reverse-im-read-char-advice-function)
+          (advice-add #'read-char-exclusive :around reverse-im-read-char-advice-function)))
     (reverse-im-deactivate t)
     (when (reverse-im--char-fold-p)
       (customize-set-variable 'char-fold-include reverse-im--char-fold-include))
@@ -291,15 +291,15 @@ Example usage: (reverse-im-activate \"russian-computer\")"
   (let ((to)
         (parent (keymap-parent function-key-map)))
     (if parent
-        (map-keymap #'(lambda (from value)
-                        (if (= c from)
-                            (let ((v (aref value 0)))
-                              (when (characterp v)
-                                (setq to v)))
-                          (when (and (not strict)
-                                     (member c (append value nil))
-                                     (characterp from))
-                            (setq to from))))
+        (map-keymap (lambda (from value)
+                      (if (= c from)
+                          (let ((v (aref value 0)))
+                            (when (characterp v)
+                              (setq to v)))
+                        (when (and (not strict)
+                                   (member c (append value nil))
+                                   (characterp from))
+                          (setq to from))))
                     parent)
       (message "Keymap is nil, is reverse-im-mode enabled?"))
     (or to c)))
@@ -361,7 +361,7 @@ current object."
 ;; Avy action
 (when (and reverse-im-avy-action-char
            (require 'avy nil t))
-  (defun avy-action-reverse-im-translate (pt)
+  (defun reverse-im-avy-action-translate (pt)
     "Auto translate word at PT."
     (save-excursion
       (goto-char pt)
@@ -375,8 +375,7 @@ current object."
             (when (looking-at-p "\\b")
               (reverse-im--translate-subr #'forward-word 1)))))))
 
-  (cl-pushnew (cons reverse-im-avy-action-char 'avy-action-reverse-im-translate) avy-dispatch-alist))
-
+  (cl-pushnew (cons reverse-im-avy-action-char 'reverse-im-avy-action-translate) avy-dispatch-alist))
 
 (provide 'reverse-im)
 
