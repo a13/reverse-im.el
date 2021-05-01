@@ -37,9 +37,8 @@
 
 ;;; Code:
 
-(require 'quail)
-(require 'cl-extra)
 (require 'cl-lib)
+(require 'quail)
 
 (declare-function which-key--show-keymap "which-key")
 
@@ -107,13 +106,12 @@
   "Alist of pairs input-method/translation keymap.")
 
 ;;; Utils
-(cl-defun reverse-im--modifiers-combos ((head . tail))
-  "All combinations of modifiers from the list argument."
-  (let* ((s (if tail
-                (reverse-im--modifiers-combos tail)
-              '(())))
-         (v (mapcar (apply-partially #'cons head) s)))
-    (append s v)))
+(defun reverse-im--permutations (list)
+  "All combinations of modifiers from the LIST argument."
+  (if (null list)
+      '(())
+    (let ((prev (reverse-im--permutations (cdr list))))
+      (nconc prev (mapcar (apply-partially #'cons (car list)) prev)))))
 
 (defun reverse-im--to-char (x)
   "Convert X to char, if needed."
@@ -126,12 +124,11 @@
   "Get all translating combos from FROM to KEYCHAR."
   (and (characterp from) (characterp keychar) (not (= from keychar))
        ;; don't translate if the char is in default layout
-       (not (cl-position from quail-keyboard-layout))
-       (mapcar
-        (lambda (mod)
-          `([,(append mod (list from))]
-            [,(append mod (list keychar))]))
-        (reverse-im--modifiers-combos reverse-im-modifiers))))
+       (not (member from quail-keyboard-layout))
+       (mapcar (lambda (mod)
+                 `([(,@mod ,from)]
+                   [(,@mod ,keychar)]))
+               (reverse-im--permutations reverse-im-modifiers))))
 
 (cl-defun reverse-im--key-def ((keychar def &rest skip))
   "Return a list of `define-key' '(key def) arguments for quail KEYCHAR and DEF."
@@ -149,14 +146,14 @@
     (when (bufferp quail-completion-buf)
       (kill-buffer quail-completion-buf))
     (when (and current-input-method quail-keyboard-layout)
-      (cl-mapcan #'reverse-im--key-def (cdr (quail-map))))))
+      (mapcan #'reverse-im--key-def (cdr (quail-map))))))
 
 ;;; Generate the translation keymap
 (defun reverse-im--im-to-keymap-internal (input-method)
   "Generate a keymap for INPUT-METHOD."
   (let ((new-keymap (make-sparse-keymap))
         (tt (reverse-im--translation-table input-method)))
-    (cl-dolist (translation tt new-keymap)
+    (dolist (translation tt new-keymap)
       (apply #'define-key new-keymap translation))))
 
 (defun reverse-im--im-to-keymap (input-method)
@@ -220,10 +217,8 @@ Example usage: (reverse-im-activate \"russian-computer\")"
          (lambda (from value)
            (when (and (characterp from)
                       (vectorp value))
-             (let* ((fold (mapcar #'string
-                                  (cl-remove-if-not #'characterp value)))
-                    (new-elt (append (list from) fold nil)))
-               (cl-pushnew new-elt char-fold))))
+             (let ((fold (mapcar #'string (cl-remove-if-not #'characterp value))))
+               (cl-pushnew (cons from fold) char-fold))))
          parent)
       (message "Keymap is nil, is reverse-im-mode enabled?"))
     char-fold))
@@ -316,17 +311,16 @@ Example usage: (reverse-im-activate \"russian-computer\")"
 ;; TODO: prefix argument to store selection
 ;;;###autoload
 (defun reverse-im-translate-region (start end &optional force)
-  "Translate active region from START to END.  FORCE translate even if the region isn't active."
+  "Translate active region from START to END.
+FORCE translate even if the region isn't active."
   (interactive "r")
   (when (or (region-active-p)
             force)
     (let* ((original (buffer-substring-no-properties start end))
            (translated (reverse-im-translate-string original)))
-      (unless (equal original translated)
-        (let* ((pos (point)))
-          (delete-region start end)
-          (insert translated)
-          (goto-char pos))))))
+      (save-excursion
+        (delete-region start end)
+        (insert translated)))))
 
 ;; loosely based on `transpose-subr'
 (defun reverse-im--translate-subr (mover arg)
@@ -337,17 +331,16 @@ moves forward by units of the given object (e.g. `forward-sentence',
 current object past ARG following (if ARG is positive) or
 preceding (if ARG is negative) objects, leaving point after the
 current object."
-  (let* ((pos1 (point))
-         (_ (funcall mover arg))
-         (pos2 (point))
-         (start (min pos1 pos2))
-         (end (max pos1 pos2))
-         (original (buffer-substring-no-properties start end))
-         (translated (reverse-im-translate-string original)))
-    (unless (equal original translated)
-      (delete-region start end)
-      (insert translated)
-      (goto-char pos1))))
+  (save-excursion
+    ;; NB: `buffer-substring-no-properties' and `delete-region'
+    ;; accepts arguments in either order.
+    (let* ((start (point))
+           (end (progn (funcall mover arg) (point)))
+           (original (buffer-substring-no-properties start end))
+           (translated (reverse-im-translate-string original)))
+      (unless (equal original translated)
+        (delete-region start end)
+        (insert translated)))))
 
 ;;;###autoload
 (defun reverse-im-translate-word (arg)
