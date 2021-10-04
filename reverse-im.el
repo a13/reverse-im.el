@@ -40,6 +40,7 @@
 (require 'quail)
 (require 'cl-extra)
 (require 'cl-lib)
+(require 'seq)
 
 (declare-function which-key--show-keymap "which-key")
 
@@ -261,6 +262,8 @@ Example usage: (reverse-im-activate \"russian-computer\")"
         res
       (reverse-im--translate-char res t))))
 
+(defvar char-fold-include)
+
 ;;;###autoload
 (define-minor-mode reverse-im-mode
   "Toggle reverse-im mode."
@@ -288,21 +291,22 @@ Example usage: (reverse-im-activate \"russian-computer\")"
 
 (defun reverse-im--translate-char (c &optional strict)
   "Try to translate C using active translation.  Set STRICT if reverse translation is not needed."
-  (let ((to)
-        (parent (keymap-parent function-key-map)))
-    (if parent
-        (map-keymap (lambda (from value)
-                      (if (= c from)
-                          (let ((v (aref value 0)))
-                            (when (characterp v)
-                              (setq to v)))
-                        (when (and (not strict)
-                                   (member c (append value nil))
-                                   (characterp from))
-                          (setq to from))))
-                    parent)
-      (message "Keymap is nil, is reverse-im-mode enabled?"))
-    (or to c)))
+  (when c
+    (let ((to)
+          (parent (keymap-parent function-key-map)))
+      (if parent
+          (map-keymap (lambda (from value)
+                        (if (= c from)
+                            (let ((v (aref value 0)))
+                              (when (characterp v)
+                                (setq to v)))
+                          (when (and (not strict)
+                                     (member c (append value nil))
+                                     (characterp from))
+                            (setq to from))))
+                      parent)
+        (message "Keymap is nil, is reverse-im-mode enabled?"))
+      (or to c))))
 
 
 (defun reverse-im-translate-string (s)
@@ -361,6 +365,9 @@ current object."
 ;; Avy action
 (when (and reverse-im-avy-action-char
            (require 'avy nil t))
+  (defvar avy-command)
+  (defvar avy-dispatch-alist)
+
   (defun reverse-im-avy-action-translate (pt)
     "Auto translate word at PT."
     (save-excursion
