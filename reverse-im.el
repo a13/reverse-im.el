@@ -126,7 +126,7 @@
   "Check if we should translate FROM to KEYCHAR."
   (and (characterp from) (characterp keychar) (not (= from keychar))
        ;; don't translate if the char is in default layout
-       (not (member from quail-keyboard-layout))))
+       (not (cl-position from quail-keyboard-layout))))
 
 (defun reverse-im--add-mods (modifiers key)
   "Generate a single translation binding adding MODIFIERS to KEY."
@@ -164,7 +164,7 @@
   "Generate a keymap for INPUT-METHOD."
   (let* ((new-keymap (make-sparse-keymap))
          (qm (reverse-im--im-to-quail-map input-method))
-         (tt (mapcan #'reverse-im--key-def (cdr qm))))
+         (tt (cl-mapcan #'reverse-im--key-def (cdr qm))))
     (seq-doseq (translation tt)
       (apply #'define-key new-keymap translation))
     new-keymap))
@@ -332,16 +332,17 @@ Translate all chars, unless `this-command' is not in `reverse-im-read-char-exclu
 ;; TODO: prefix argument to store selection
 ;;;###autoload
 (defun reverse-im-translate-region (start end &optional force)
-  "Translate active region from START to END.
-FORCE translate even if the region isn't active."
+  "Translate active region from START to END.  FORCE translate even if the region isn't active."
   (interactive "r")
   (when (or (region-active-p)
             force)
     (let* ((original (buffer-substring-no-properties start end))
            (translated (reverse-im-translate-string original)))
-      (save-excursion
-        (delete-region start end)
-        (insert translated)))))
+      (unless (equal original translated)
+        (let* ((pos (point)))
+          (delete-region start end)
+          (insert translated)
+          (goto-char pos))))))
 
 ;; loosely based on `transpose-subr'
 (defun reverse-im--translate-subr (mover arg)
@@ -352,16 +353,17 @@ moves forward by units of the given object (e.g. `forward-sentence',
 current object past ARG following (if ARG is positive) or
 preceding (if ARG is negative) objects, leaving point after the
 current object."
-  (save-excursion
-    ;; NB: `buffer-substring-no-properties' and `delete-region'
-    ;; accepts arguments in either order.
-    (let* ((start (point))
-           (end (progn (funcall mover arg) (point)))
-           (original (buffer-substring-no-properties start end))
-           (translated (reverse-im-translate-string original)))
-      (unless (equal original translated)
-        (delete-region start end)
-        (insert translated)))))
+  (let* ((pos1 (point))
+         (_ (funcall mover arg))
+         (pos2 (point))
+         (start (min pos1 pos2))
+         (end (max pos1 pos2))
+         (original (buffer-substring-no-properties start end))
+         (translated (reverse-im-translate-string original)))
+    (unless (equal original translated)
+      (delete-region start end)
+      (insert translated)
+      (goto-char pos1))))
 
 ;;;###autoload
 (defun reverse-im-translate-word (arg)
