@@ -8,15 +8,17 @@
      (seq-set-equal-p s1 s2 'equal))))
 
 (ert-deftest reverse-im--modifiers-combos-test ()
-  (should
-   (seq-set-equal-deep-p
-    (reverse-im--modifiers-combos '(control meta))
-    '(nil (meta) (control) (control meta))))
-  (should
-   (or (string= "26.3" emacs-version)
-       (seq-set-equal-deep-p
-        (reverse-im--modifiers-combos '(meta control))
-        '(nil (meta) (control) (control meta)))))
+  (if (string= "26.3" emacs-version)
+      (equal (reverse-im--modifiers-combos '(meta control))
+             '(nil (meta) (control) (control meta)))
+    (prog (should
+           (seq-set-equal-deep-p
+            (reverse-im--modifiers-combos '(meta control))
+            '(nil (meta) (control) (control meta))))
+          (should
+           (seq-set-equal-deep-p
+            (reverse-im--modifiers-combos '(meta control))
+            '(nil (meta) (control) (control meta))))))
   ;; FIXME:
   ;; (should
   ;;  (null
