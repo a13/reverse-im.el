@@ -1,8 +1,5 @@
 (require 'reverse-im)
-(require 'seq)
-
-(defun seq-set-equal-internal-p (s1 s2)
-  (seq-set-equal-p s1 s2 'equal))
+(require 'seq-25)
 
 (defun seq-set-equal-deep-p (ss1 ss2)
   (seq-set-equal-p
@@ -34,16 +31,19 @@
     '(nil (control)))))
 
 (ert-deftest reverse-im--key-def-internal-test ()
-  (let ((reverse-im-modifiers '(control)))
-    (seq-set-equal-deep-p
-     (reverse-im--key-def-internal 113 1093)
-     '(([(1093)] [(113)]) ([(control 1093)] [(control 113)]))))
+  (should (let ((reverse-im-modifiers '(control)))
+            (seq-set-equal-deep-p
+             (reverse-im--key-def-internal 113 1093)
+             '(([(1093)] [(113)]) ([(control 1093)] [(control 113)])))))
   ;; already in default layout
-  (let ((reverse-im-modifiers '(control))
-        (quail-keyboard-layout '(1093)))
-    (null
-     (reverse-im--key-def-internal 113 1093)))
+  (should (let ((reverse-im-modifiers '(control))
+                (quail-keyboard-layout '(1093)))
+            (null
+             (reverse-im--key-def-internal 113 1093))))
   ;; the same
-  (let ((reverse-im-modifiers '(control)))
-    (null
-     (reverse-im--key-def-internal 1093 1093))))
+  (should (let ((reverse-im-modifiers '(control)))
+            (null
+             (reverse-im--key-def-internal 1093 1093))))
+  (should (let ((reverse-im-modifiers '(control)))
+            (null
+             (reverse-im--key-def-internal 'foo 'bar)))))
