@@ -9,7 +9,7 @@
 
 (ert-deftest reverse-im--modifiers-combos-test ()
   (if (string= "26.3" emacs-version)
-      (should (equal (reverse-im--modifiers-combos '(meta control))
+      (should (equal (reverse-im--modifiers-combos '(control meta))
                      '(nil (meta) (control) (control meta))))
     (should
      (seq-set-equal-deep-p
