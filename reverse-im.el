@@ -1,7 +1,7 @@
 ;;; reverse-im.el --- Reverse mapping for non-default system layouts -*- lexical-binding: t -*-
 
 ;; Authors: Juri Linkov <juri@jurta.org> (initial idea), Dmitry K. (packager and maintainer)
-;; Package-Requires: ((emacs "25.1"))
+;; Package-Requires: ((emacs "25.1") (seq "2.23"))
 ;; Keywords: i18n
 ;; Homepage: https://github.com/a13/reverse-im.el
 ;; Version: 0.0.7
@@ -122,17 +122,33 @@
       (string-to-char x)
     x))
 
+(defun reverse-im--sanitize-p (keychar from)
+  "Check if we should translate FROM to KEYCHAR."
+  (and (characterp from) (characterp keychar) (not (= from keychar))
+       ;; don't translate if the char is in default layout
+       (not (cl-position from quail-keyboard-layout))))
+
+(defun reverse-im--add-mods (modifiers key)
+  "Generate a single translation binding adding MODIFIERS to KEY."
+  (vector (append modifiers (list key))))
+
 ;;; Calculate the full translation table
 (defun reverse-im--key-def-internal (keychar from)
   "Get all translating combos from FROM to KEYCHAR."
-  (and (characterp from) (characterp keychar) (not (= from keychar))
-       ;; don't translate if the char is in default layout
-       (not (cl-position from quail-keyboard-layout))
-       (mapcar
-        (lambda (mod)
-          `([,(append mod (list from))]
-            [,(append mod (list keychar))]))
-        (reverse-im--modifiers-combos reverse-im-modifiers))))
+  (when (reverse-im--sanitize-p keychar from)
+    (mapcar (lambda (mods)
+              (mapcar (apply-partially #'reverse-im--add-mods mods)
+                      (list from keychar)))
+            (reverse-im--modifiers-combos reverse-im-modifiers))))
+
+(defun reverse-im--im-to-quail-map (input-method)
+  "Get quail map for INPUT-METHOD."
+  (with-temp-buffer
+    (activate-input-method input-method)
+    (when (bufferp quail-completion-buf)
+      (kill-buffer quail-completion-buf))
+    (when (and current-input-method quail-keyboard-layout)
+      (quail-map))))
 
 (cl-defun reverse-im--key-def ((keychar def &rest skip))
   "Return a list of `define-key' '(key def) arguments for quail KEYCHAR and DEF."
@@ -143,22 +159,16 @@
            (mapcan (apply-partially #'reverse-im--key-def-internal keychar)
                    (mapcar #'reverse-im--to-char (cdr translation)))))))
 
-(defun reverse-im--translation-table (input-method)
-  "Generate a translation table for INPUT-METHOD."
-  (with-temp-buffer
-    (activate-input-method input-method)
-    (when (bufferp quail-completion-buf)
-      (kill-buffer quail-completion-buf))
-    (when (and current-input-method quail-keyboard-layout)
-      (cl-mapcan #'reverse-im--key-def (cdr (quail-map))))))
-
 ;;; Generate the translation keymap
 (defun reverse-im--im-to-keymap-internal (input-method)
   "Generate a keymap for INPUT-METHOD."
-  (let ((new-keymap (make-sparse-keymap))
-        (tt (reverse-im--translation-table input-method)))
-    (cl-dolist (translation tt new-keymap)
-      (apply #'define-key new-keymap translation))))
+  (let* ((new-keymap (make-sparse-keymap))
+         (qm (reverse-im--im-to-quail-map input-method))
+         (tt (cl-mapcan #'reverse-im--key-def (cdr qm))))
+    (seq-doseq (translation tt)
+      (apply #'define-key new-keymap translation))
+    new-keymap))
+
 
 (defun reverse-im--im-to-keymap (input-method)
   "Translation keymap for INPUT-METHOD, a memoized version of the previous one."
@@ -249,14 +259,16 @@ Example usage: (reverse-im-activate \"russian-computer\")"
 
 
 (defun reverse-im-read-char-include (orig-fun &rest args)
-  "An advice for `read-char' compatible ORIG-FUN called with ARGS.  Translate chars only when `this-command' is in `reverse-im-read-char-include-commands'."
+  "An advice for `read-char' compatible ORIG-FUN called with ARGS.
+Translate chars only when `this-command' is in `reverse-im-read-char-include-commands'."
   (let ((res (apply orig-fun args)))
     (if (reverse-im--read-char-includes-p reverse-im-read-char-include-commands)
         (reverse-im--translate-char res t)
       res)))
 
 (defun reverse-im-read-char-exclude (orig-fun &rest args)
-  "An advice for `read-char' compatible ORIG-FUN called with ARGS.  Translate all chars, unless `this-command' is not in `reverse-im-read-char-exclude-commands'."
+  "An advice for `read-char' compatible ORIG-FUN called with ARGS.
+Translate all chars, unless `this-command' is not in `reverse-im-read-char-exclude-commands'."
   (let ((res (apply orig-fun args)))
     (if (reverse-im--read-char-includes-p reverse-im-read-char-exclude-commands)
         res
