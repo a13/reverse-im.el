@@ -4,7 +4,7 @@
 ;; Package-Requires: ((emacs "25.1") (seq "2.23"))
 ;; Keywords: i18n
 ;; Homepage: https://github.com/a13/reverse-im.el
-;; Version: 0.0.7
+;; Version: 0.0.8
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -116,17 +116,11 @@
          (v (mapcar (apply-partially #'cons head) s)))
     (append s v)))
 
-(defun reverse-im--to-char (x)
-  "Convert X to char, if needed."
-  (if (stringp x)
-      (string-to-char x)
-    x))
-
 (defun reverse-im--sanitize-p (keychar from)
   "Check if we should translate FROM to KEYCHAR."
   (and (characterp from) (characterp keychar) (not (= from keychar))
        ;; don't translate if the char is in default layout
-       (not (cl-position from quail-keyboard-layout))))
+       (not (member from (append quail-keyboard-layout nil)))))
 
 (defun reverse-im--add-mods (modifiers key)
   "Generate a single translation binding adding MODIFIERS to KEY."
@@ -150,6 +144,12 @@
     (when (and current-input-method quail-keyboard-layout)
       (quail-map))))
 
+(defun reverse-im--to-char (x)
+  "Convert X to char, if needed."
+  (if (stringp x)
+      (string-to-char x)
+    x))
+
 (cl-defun reverse-im--key-def ((keychar def &rest skip))
   "Return a list of `define-key' '(key def) arguments for quail KEYCHAR and DEF."
   (let ((translation (quail-get-translation def (char-to-string keychar) 1)))
@@ -164,11 +164,10 @@
   "Generate a keymap for INPUT-METHOD."
   (let* ((new-keymap (make-sparse-keymap))
          (qm (reverse-im--im-to-quail-map input-method))
-         (tt (cl-mapcan #'reverse-im--key-def (cdr qm))))
+         (tt (mapcan #'reverse-im--key-def (cdr qm))))
     (seq-doseq (translation tt)
       (apply #'define-key new-keymap translation))
     new-keymap))
-
 
 (defun reverse-im--im-to-keymap (input-method)
   "Translation keymap for INPUT-METHOD, a memoized version of the previous one."
