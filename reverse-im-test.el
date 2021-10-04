@@ -10,12 +10,12 @@
 (ert-deftest reverse-im--modifiers-combos-test ()
   (should
    (seq-set-equal-deep-p
-    (reverse-im--modifiers-combos '(meta control))
+    (reverse-im--modifiers-combos '(control meta))
     '(nil (meta) (control) (control meta))))
   (should
    (or (string= "26.3" emacs-version)
        (seq-set-equal-deep-p
-        (reverse-im--modifiers-combos '(control meta))
+        (reverse-im--modifiers-combos '(meta control))
         '(nil (meta) (control) (control meta)))))
   ;; FIXME:
   ;; (should
