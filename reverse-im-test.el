@@ -9,16 +9,16 @@
 
 (ert-deftest reverse-im--modifiers-combos-test ()
   (if (string= "26.3" emacs-version)
-      (equal (reverse-im--modifiers-combos '(meta control))
-             '(nil (meta) (control) (control meta)))
-    (prog (should
-           (seq-set-equal-deep-p
-            (reverse-im--modifiers-combos '(meta control))
-            '(nil (meta) (control) (control meta))))
-          (should
-           (seq-set-equal-deep-p
-            (reverse-im--modifiers-combos '(meta control))
-            '(nil (meta) (control) (control meta))))))
+      (should (equal (reverse-im--modifiers-combos '(meta control))
+                     '(nil (meta) (control) (control meta))))
+    (should
+     (seq-set-equal-deep-p
+      (reverse-im--modifiers-combos '(meta control))
+      '(nil (meta) (control) (control meta))))
+    (should
+     (seq-set-equal-deep-p
+      (reverse-im--modifiers-combos '(meta control))
+      '(nil (meta) (control) (control meta)))))
   ;; FIXME:
   ;; (should
   ;;  (null
@@ -51,11 +51,6 @@
   (should (let ((reverse-im-modifiers '(control)))
             (null
              (reverse-im--key-def-internal 'foo 'bar)))))
-
-
-;; keychar 124 def ((0 0 0 0 nil) . [124 |]) skip nil
-;; keychar 61 def [=] skip nil
-;; keychar 113 def [х] skip nil
 
 (ert-deftest reverse-im--key-def-test ()
   (should (null (reverse-im--key-def '(124 ((0 0 0 0 nil) . [124 |])))))
