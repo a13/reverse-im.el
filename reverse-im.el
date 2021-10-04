@@ -116,7 +116,7 @@
          (v (mapcar (apply-partially #'cons head) s)))
     (append s v)))
 
-(defun reverse-im--sanitize-p (keychar from)
+(cl-defun reverse-im--sanitize-p ((keychar from))
   "Check if we should translate FROM to KEYCHAR."
   (and (characterp from) (characterp keychar) (not (= from keychar))
        ;; don't translate if the char is in default layout
@@ -127,13 +127,12 @@
   (vector (append modifiers (list key))))
 
 ;;; Calculate the full translation table
-(defun reverse-im--key-def-internal (keychar from)
-  "Get all translating combos from FROM to KEYCHAR."
-  (when (reverse-im--sanitize-p keychar from)
-    (mapcar (lambda (mods)
-              (mapcar (apply-partially #'reverse-im--add-mods mods)
-                      (list from keychar)))
-            (reverse-im--modifiers-combos reverse-im-modifiers))))
+(defun reverse-im--key-def-internal (key-def)
+  "Get all reversed translation combos for KEY-DEF."
+  (mapcar (lambda (mods)
+            (mapcar (apply-partially #'reverse-im--add-mods mods)
+                    (reverse key-def)))
+          (reverse-im--modifiers-combos reverse-im-modifiers)))
 
 (defun reverse-im--im-to-quail-map (input-method)
   "Get quail map for INPUT-METHOD."
@@ -150,33 +149,36 @@
       (string-to-char x)
     x))
 
-(cl-defun reverse-im--key-def ((keychar def &rest skip))
-  "Return a list of `define-key' '(key def) arguments for quail KEYCHAR and DEF."
+(cl-defun reverse-im--normalize-keydef ((keychar def &rest skip))
+  "Normalize quail KEYCHAR and DEF."
   (let ((translation (quail-get-translation def (char-to-string keychar) 1)))
     (cond ((and translation (characterp translation))
-           (reverse-im--key-def-internal keychar translation))
+           (list (list keychar translation)))
           ((consp translation)
-           (mapcan (apply-partially #'reverse-im--key-def-internal keychar)
-                   (mapcar #'reverse-im--to-char (cdr translation)))))))
+           (mapcar (lambda (kd)
+                     (list keychar (reverse-im--to-char kd)))
+                   (cdr translation))))))
+
+;; to test more easily
+(defun reverse-im--im-to-pairs (input-method)
+  "Generate a list of translation pairs for INPUT-METHOD."
+  (let* ((qm (reverse-im--im-to-quail-map input-method))
+         (normalized (mapcan #'reverse-im--normalize-keydef (cdr qm))))
+    (seq-filter #'reverse-im--sanitize-p normalized)))
 
 ;;; Generate the translation keymap
-(defun reverse-im--im-to-keymap-internal (input-method)
-  "Generate a keymap for INPUT-METHOD."
-  (let* ((new-keymap (make-sparse-keymap))
-         (qm (reverse-im--im-to-quail-map input-method))
-         (tt (mapcan #'reverse-im--key-def (cdr qm))))
-    (seq-doseq (translation tt)
-      (apply #'define-key new-keymap translation))
-    new-keymap))
-
 (defun reverse-im--im-to-keymap (input-method)
-  "Translation keymap for INPUT-METHOD, a memoized version of the previous one."
+  "Translation keymap for INPUT-METHOD, a memoized version."
   ;; alist-get testfn arg appeared in 26.1 so we have to symbolize
   (let ((input-method (intern input-method)))
     (or (alist-get input-method reverse-im--keymaps-alist)
-        (let ((new-keymap (reverse-im--im-to-keymap-internal input-method)))
-          (add-to-list 'reverse-im--keymaps-alist (cons input-method new-keymap))
-          new-keymap))))
+        (let* ((filtered (reverse-im--im-to-pairs input-method))
+               (tt (mapcan #'reverse-im--key-def-internal filtered))
+               (translation-keymap (make-sparse-keymap)))
+          (seq-doseq (translation tt)
+            (apply #'define-key translation-keymap translation))
+          (add-to-list 'reverse-im--keymaps-alist (cons input-method translation-keymap))
+          translation-keymap))))
 
 ;;; User-accessible functions
 
