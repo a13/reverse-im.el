@@ -14,9 +14,8 @@ jobs:
       fail-fast: false
       matrix:
         emacs_version:
-          - 26.1
-          - 26.2
           - 26.3
+          - 27.2
         ignore_warnings:
           - true
         include:
@@ -30,4 +29,9 @@ jobs:
     - uses: leotaku/elisp-check@master
       with:
         file: reverse-im.el
+        ignore_warnings: ${{ matrix.ignore_warnings }}
+    - uses: leotaku/elisp-check@master
+      with:
+        check: ert
+        file: reverse-im-test.el
         ignore_warnings: ${{ matrix.ignore_warnings }}
