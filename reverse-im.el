@@ -118,7 +118,7 @@
 
 (cl-defun reverse-im--sanitize-p ((keychar from))
   "Check if we should translate FROM to KEYCHAR."
-  (and (characterp from) (characterp keychar) (not (= from keychar))
+  (and (characterp from) (characterp keychar) (/= from keychar)
        ;; don't translate if the char is in default layout
        (not (member from (append quail-keyboard-layout nil)))))
 
