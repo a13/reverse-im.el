@@ -153,8 +153,11 @@
   "Normalize quail Quail map OBJECT, see `quail-map-p' for format."
   (let* ((translation (car object))
          (alist (cdr object))
+         (alist* (if (functionp alist)
+                     (funcall alist)
+                   alist))
          (translated (quail-get-translation
-                      (car alist)
+                      (car alist*)
                       (char-to-string translation) 1)))
     (cond ((and translated (characterp translated))
            (list (list translation translated)))
