@@ -149,15 +149,19 @@
       (string-to-char x)
     x))
 
-(cl-defun reverse-im--normalize-keydef ((keychar def &rest skip))
-  "Normalize quail KEYCHAR and DEF."
-  (let ((translation (quail-get-translation def (char-to-string keychar) 1)))
-    (cond ((and translation (characterp translation))
-           (list (list keychar translation)))
-          ((consp translation)
+(defun reverse-im--normalize-keydef (object)
+  "Normalize quail Quail map OBJECT, see `quail-map-p' for format."
+  (let* ((translation (car object))
+         (alist (cdr object))
+         (translated (quail-get-translation
+                      (car alist)
+                      (char-to-string translation) 1)))
+    (cond ((and translated (characterp translated))
+           (list (list translation translated)))
+          ((consp translated)
            (mapcar (lambda (kd)
-                     (list keychar (reverse-im--to-char kd)))
-                   (cdr translation))))))
+                     (list translation (reverse-im--to-char kd)))
+                   (cdr translated))))))
 
 ;; to test more easily
 (defun reverse-im--im-to-pairs (input-method)
