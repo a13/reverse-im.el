@@ -61,3 +61,9 @@
       (103 1087) (102 1072) (100 1074) (115 1099) (97 1092) (93 1098) (91 1093)
       (112 1079) (111 1097) (105 1096) (117 1075) (121 1085) (116 1077) (114 1082)
       (101 1091) (119 1094) (113 1081) (96 1105)))))
+
+(ert-deftest reverse-im-sanity-test ()
+  (let ((reverse-im--keymaps-alist nil))
+    (should (mapcar (lambda (m)
+                      (reverse-im--im-to-pairs (car m)))
+                    input-method-alist))))
