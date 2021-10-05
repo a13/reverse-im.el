@@ -66,4 +66,7 @@
   (let ((reverse-im--keymaps-alist nil))
     (should (mapcar (lambda (m)
                       (reverse-im--im-to-pairs (car m)))
+                    input-method-alist))
+    (should (mapcar (lambda (m)
+                      (reverse-im--im-to-keymap (car m)))
                     input-method-alist))))
