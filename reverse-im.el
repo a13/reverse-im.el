@@ -28,12 +28,12 @@
 ;; (use-package reverse-im
 ;;   :ensure t
 ;;   :custom
-;;   (reverse-im-input-methods '("russian-computer")) ; use your input-method(s) here
+;;   (reverse-im-input-methods '("ukrainian-computer")) ; put your input-method(s) here
 ;;   :config
 ;;   (reverse-im-mode t))
 
 ;; or, alternatively, add the library to your load-path and
-;; (reverse-im-activate "russian-computer")
+;; (reverse-im-activate "ukrainian-computer") manually
 
 ;;; Code:
 
@@ -41,8 +41,6 @@
 (require 'cl-extra)
 (require 'cl-lib)
 (require 'seq)
-
-(declare-function which-key--show-keymap "which-key")
 
 ;;; Customs
 (defgroup reverse-im nil
@@ -189,7 +187,7 @@
 
 (defun reverse-im-activate (input-method)
   "Activate the reverse mapping for INPUT-METHOD (can be a list).
-Example usage: (reverse-im-activate \"russian-computer\")"
+Example usage: (reverse-im-activate \"ukrainian-computer\")"
   (let* ((input-methods (if (listp input-method)
                             input-method
                           (list input-method)))
@@ -216,6 +214,9 @@ Example usage: (reverse-im-activate \"russian-computer\")"
     (add-to-list 'reverse-im-input-methods input-method)
     (customize-save-variable 'reverse-im-input-methods reverse-im-input-methods)))
 
+
+(declare-function which-key--show-keymap "which-key")
+
 ;;;###autoload
 (defun reverse-im-which-key-show (input-method)
   "Show translation bindings for INPUT-METHOD using `which-key'."
@@ -238,7 +239,7 @@ Example usage: (reverse-im-activate \"russian-computer\")"
            (when (and (characterp from)
                       (vectorp value))
              (let* ((fold (mapcar #'string
-                                  (cl-remove-if-not #'characterp value)))
+                                  (seq-filter #'characterp value)))
                     (new-elt (append (list from) fold nil)))
                (cl-pushnew new-elt char-fold))))
          parent)
@@ -373,7 +374,7 @@ current object."
 
 ;;;###autoload
 (defun reverse-im-translate-word (arg)
-  "Translate word before the point.  With prefix ARG translates ARG words instead of the last one, if ARG is - translate until the beginning of line."
+  "Translate word before the point.  With prefix ARG translates ARG words instead of the last one, if ARG is 0 - translate until the beginning of line."
   (interactive "p")
   (if (eq 0 arg)
       (reverse-im--translate-subr #'move-beginning-of-line 1)
