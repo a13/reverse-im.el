@@ -5,54 +5,43 @@
   Overrides [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Translation-Keymaps.html][function-key-map]] for preferred input-method(s) to translate input sequences
   to English, so we can use Emacs bindings while a non-default system layout is active.
 
-  N.B. For all the examples below "russian-computer" input method is used.
+** Quick start
 
-** Installation
+     #+BEGIN_SRC emacs-lisp
+       (use-package reverse-im
+         :ensure t ; install `reverse-im' using package.el
+         :demand t ; always load it
+         :after char-fold ; but only after `char-fold' is loaded
+         :bind
+         ("M-T" . reverse-im-translate-word) ; fix a word in wrong layout
+         :custom
+         (reverse-im-char-fold t) ; use lax matching
+         (reverse-im-read-char-advice-function #'reverse-im-read-char-include)
+         (reverse-im-input-methods '("ukrainian-computer")) ; translate these methods
+         :config
+         (reverse-im-mode t)) ; turn the mode on
+     #+END_SRC
 
-*** Manual
+* Installation and usage
 
-    #+BEGIN_SRC emacs-lisp
-      M-x package-install RET reverse-im RET
-    #+END_SRC
+** Manual installation
 
-*** Using use-package
+   #+BEGIN_SRC emacs-lisp
+     M-x package-install RET reverse-im RET
+   #+END_SRC
 
-    Using provided minor mode instead (see [[Settings][Settings]] for details):
-    #+BEGIN_SRC emacs-lisp
-      (use-package reverse-im
-        :ensure t
-        :custom
-        (reverse-im-input-methods '("russian-computer"))
-        :config
-        (reverse-im-mode t))
-    #+END_SRC
+** Using use-package /:ensure/
 
-    or, by using the old way
-
-    #+BEGIN_SRC emacs-lisp
-      (use-package reverse-im
-        :ensure t
-        :config
-        (reverse-im-activate "russian-computer"))
-    #+END_SRC
-
-    A more complex setup
-
-    #+BEGIN_SRC emacs-lisp
-      (use-package reverse-im
-        :ensure t
-        :demand t
-        :after char-fold
-        :bind
-        ("M-T" . reverse-im-translate-word)
-        :custom
-        (reverse-im-char-fold t)
-        (reverse-im-read-char-advice-function #'reverse-im-read-char-exclude)
-        (reverse-im-input-methods '("russian-computer"))
-        :config
-        (reverse-im-mode t))
-    #+END_SRC
-
+   Using provided minor mode instead (see [[Settings][Settings]] for details):
+   #+BEGIN_SRC emacs-lisp
+     (use-package reverse-im
+       :ensure t
+       :custom
+       (reverse-im-input-methods '("ukrainian-computer"))
+       ;; (reverse-im-activate "ukrainian-computer") ; the legacy way
+       :config
+       (reverse-im-mode t))
+   #+END_SRC
 
 ** Usage
    Reverse-im provides a simple minor mode that activates/deactivates translations for all
@@ -74,17 +63,16 @@
       M-x customize-variable RET reverse-im-input-methods RET
       ;; These store list variable in `custom-file'.
       ;; provides auto-completion, one input-method at a time
-      M-x reverse-im-add-input-method RET russian-computer RET
+      M-x reverse-im-add-input-method RET ukrainian-computer RET
     #+END_SRC
 
     Since version 0.0.2 all possible bindings with Ctrl, Meta, and Super are translated.
     If you want to change it (e.g. you don't use Super)
     #+BEGIN_SRC emacs-lisp
-      (setq 'reverse-im-modifiers '(control meta))
+      (setq reverse-im-modifiers '(control meta))
       ;; or
       M-x customize-variable RET reverse-im-modifiers RET
     #+END_SRC
-
 
 *** Activation/Deactivation
 
@@ -97,13 +85,12 @@
 
     Alternatively, you can directly call translation function:
     #+BEGIN_SRC emacs-lisp
-      (reverse-im-activate "russian-computer")
+      (reverse-im-activate "ukrainian-computer")
     #+END_SRC
-
 
     Since version 0.0.3 it supports multiple input method translation:
     #+BEGIN_SRC emacs-lisp
-      (reverse-im-activate '("russian-computer" "ukrainian-computer"))
+      (reverse-im-activate '("ukrainian-computer" "arabic"))
     #+END_SRC
 
     If something goes wrong or you just want to turn translation off.
@@ -112,8 +99,7 @@
       M-x reverse-im-deactivate
       ;; or
       (reverse-im-deactivate)
-      (reverse-im-deactivate t)
-      ;; to reset translation tables cache
+      (reverse-im-deactivate t) ; to reset translation tables cache
     #+END_SRC
 
 *** Advising read-char
