@@ -1,6 +1,9 @@
 * Reverse-im.el
 
   [[https://melpa.org/#/reverse-im][https://melpa.org/packages/reverse-im-badge.svg]]
+  [[https://github.com/a13/reverse-im.el/stargazers][https://img.shields.io/github/stars/a13/reverse-im.el.svg]]
+  [[https://github.com/a13/reverse-im.el/issues][https://img.shields.io/github/issues/a13/reverse-im.el.svg]]
+  [[https://github.com/vshymanskyy/StandWithUkraine/blob/main/docs/README.md][https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg]]
 
   Overrides [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Translation-Keymaps.html][function-key-map]] for preferred input-method(s) to translate input sequences
   to English, so we can use Emacs bindings while a non-default system layout is active.
