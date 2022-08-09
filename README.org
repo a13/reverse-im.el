@@ -11,6 +11,12 @@
 ** Quick start
 
      #+BEGIN_SRC emacs-lisp
+       ;; Needed for `:after char-fold' to work
+       (use-package char-fold
+         :custom
+         (char-fold-symmetric t)
+         (search-default-mode #'char-fold-to-regexp))
+
        (use-package reverse-im
          :ensure t ; install `reverse-im' using package.el
          :demand t ; always load it
