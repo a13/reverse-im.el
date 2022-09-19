@@ -82,13 +82,13 @@
 
 (defcustom reverse-im-read-char-exclude-commands
   '("^avy-.*")
-  "List of regexp or commands to match `this-command' to exclude when using `reverse-im-read-char-exclude'."
+  "List of regexes/commands to match `this-command' to exclude when using `reverse-im-read-char-exclude'."
   :group 'reverse-im
   :type `(repeat (choice regexp symbol)))
 
 (defcustom reverse-im-read-char-include-commands
   '("^mu4e-.*" org-capture org-export-dispatch)
-  "List of regexp or commands to match `this-command' to include when using `reverse-im-read-char-include'."
+  "List of regexes/commands to match `this-command' to include when using `reverse-im-read-char-include'."
   :group 'reverse-im
   :type `(repeat (choice regexp symbol)))
 
@@ -108,12 +108,11 @@
 ;;; Utils
 (defun reverse-im--modifiers-combos (modifiers)
   "All combinations of MODIFIERS from the list argument."
-  (seq-let (head &rest tail) modifiers
-    (let* ((s (if tail
-                  (reverse-im--modifiers-combos tail)
-                '(())))
-           (v (mapcar (apply-partially #'cons head) s)))
-      (append s v))))
+  (seq-reduce (lambda (acc x)
+                (append acc
+                        (mapcar (apply-partially #'cons x) acc)))
+              (seq-uniq modifiers)
+              '(nil)))
 
 (defun reverse-im--sanitize-p (translation)
   "Check if we should do TRANSLATION."
@@ -177,7 +176,9 @@
   ;; alist-get testfn arg appeared in 26.1 so we have to symbolize
   (let ((input-method (intern input-method)))
     (or (alist-get input-method reverse-im--keymaps-alist)
+        ;; generate translation pairs
         (let* ((filtered (reverse-im--im-to-pairs input-method))
+               ;; add all modifiers
                (tt (mapcan #'reverse-im--key-def-internal filtered))
                (translation-keymap (make-sparse-keymap)))
           (seq-doseq (translation tt)

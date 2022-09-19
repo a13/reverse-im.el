@@ -10,24 +10,19 @@
 (ert-deftest reverse-im--modifiers-combos-test ()
   (if (string= "26.3" emacs-version)
       (should (equal (reverse-im--modifiers-combos '(control meta))
-                     '(nil (meta) (control) (control meta))))
-    (should
-     (seq-set-equal-deep-p
-      (reverse-im--modifiers-combos '(meta control))
-      '(nil (meta) (control) (control meta))))
+                     '(nil (control) (meta) (meta control))))
     (should
      (seq-set-equal-deep-p
       (reverse-im--modifiers-combos '(meta control))
       '(nil (meta) (control) (control meta)))))
-  ;; FIXME:
-  ;; (should
-  ;;  (null
-  ;;   (reverse-im--modifiers-combos '())
-  ;;   '())) ;or '(nil?)
-  ;; (should
-  ;;  (null
-  ;;   (reverse-im--modifiers-combos '(control control))
-  ;;   '(nil (control))))
+  (should
+   (equal
+    (reverse-im--modifiers-combos '())
+    '(nil)))
+  (should
+   (equal
+    (reverse-im--modifiers-combos '(control control))
+    '(nil (control))))
   (should
    (equal
     (reverse-im--modifiers-combos '(control))
