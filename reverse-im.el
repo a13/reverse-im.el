@@ -38,9 +38,9 @@
 ;;; Code:
 
 (require 'quail)
-(require 'cl-extra)
 (require 'cl-lib)
 (require 'seq)
+(require 'subr-x)
 
 ;;; Customs
 (defgroup reverse-im nil
@@ -106,19 +106,21 @@
   "Alist of pairs input-method/translation keymap.")
 
 ;;; Utils
-(cl-defun reverse-im--modifiers-combos ((head . tail))
-  "All combinations of modifiers from the list argument."
-  (let* ((s (if tail
-                (reverse-im--modifiers-combos tail)
-              '(())))
-         (v (mapcar (apply-partially #'cons head) s)))
-    (append s v)))
+(defun reverse-im--modifiers-combos (modifiers)
+  "All combinations of MODIFIERS from the list argument."
+  (seq-let (head &rest tail) modifiers
+    (let* ((s (if tail
+                  (reverse-im--modifiers-combos tail)
+                '(())))
+           (v (mapcar (apply-partially #'cons head) s)))
+      (append s v))))
 
-(cl-defun reverse-im--sanitize-p ((keychar from))
-  "Check if we should translate FROM to KEYCHAR."
-  (and (characterp from) (characterp keychar) (/= from keychar)
-       ;; don't translate if the char is in default layout
-       (not (member from (append quail-keyboard-layout nil)))))
+(defun reverse-im--sanitize-p (translation)
+  "Check if we should do TRANSLATION."
+  (seq-let (keychar from) translation
+    (and (characterp from) (characterp keychar) (/= from keychar)
+         ;; don't translate if the char is in default layout
+         (not (member from (append quail-keyboard-layout nil))))))
 
 (defun reverse-im--add-mods (modifiers key)
   "Generate a single translation binding adding MODIFIERS to KEY."
@@ -138,8 +140,9 @@
     (activate-input-method input-method)
     (when (bufferp quail-completion-buf)
       (kill-buffer quail-completion-buf))
-    (when (and current-input-method quail-keyboard-layout)
-      (quail-map))))
+    (and current-input-method
+         quail-keyboard-layout
+         (quail-map))))
 
 (defun reverse-im--to-char (x)
   "Convert X to char, if needed."
@@ -149,8 +152,7 @@
 
 (defun reverse-im--normalize-keydef (object)
   "Normalize quail Quail map OBJECT, see `quail-map-p' for format."
-  (let* ((translation (car object))
-         (alist (cdr object)))
+  (seq-let (translation &rest alist) object
     (unless (functionp alist)
       (let ((translated (quail-get-translation
                          (car alist)
@@ -227,24 +229,33 @@ Example usage: (reverse-im-activate \"ukrainian-computer\")"
                               (reverse-im--im-to-keymap input-method))
     (message "which-key is not installed.")))
 
+;; FIXME calculate translation map even when `reverse-im-mode' is inactive
+(defun reverse-im--translation-keymap ()
+  "Return a keymap used for translation."
+  (keymap-parent function-key-map))
 
 ;;; char-folding
+(defun reverse-im--generate-char-fold (keymap)
+  "Generate a `char-fold' substitutions list for KEYMAP."
+  (let ((char-fold))
+    (map-keymap (lambda (from value)
+                  (when (and (characterp from)
+                             (vectorp value))
+                    (let* ((fold (mapcar #'string
+                                         (seq-filter #'characterp value)))
+                           (new-elt (append (list from) fold nil)))
+                      (cl-pushnew new-elt char-fold))))
+                keymap)
+    char-fold))
+
 (defun reverse-im-char-fold-include ()
   "Generate a substitutions list for `char-fold-include'."
-  (let ((char-fold '())
-        (parent (keymap-parent function-key-map)))
-    (if parent
-        (map-keymap
-         (lambda (from value)
-           (when (and (characterp from)
-                      (vectorp value))
-             (let* ((fold (mapcar #'string
-                                  (seq-filter #'characterp value)))
-                    (new-elt (append (list from) fold nil)))
-               (cl-pushnew new-elt char-fold))))
-         parent)
-      (message "Keymap is nil, is reverse-im-mode enabled?"))
-    char-fold))
+  (if-let ((translation-keymap (reverse-im--translation-keymap)))
+      (reverse-im--generate-char-fold translation-keymap)
+    (message "Keymap is nil, is reverse-im-mode enabled?")
+    nil))
+
+(defvar char-fold-include)
 
 (defun reverse-im--char-fold-p ()
   "Check if we have new char-fold.el."
@@ -253,23 +264,19 @@ Example usage: (reverse-im-activate \"ukrainian-computer\")"
        (boundp 'char-fold-include)))
 
 ;;; read-char hacks
-
-(defun reverse-im--read-char-includes-p (command-list)
-  "Check whether `this-command' matches any of COMMAND-LIST elements."
-  (seq-some (lambda (x)
-              (or (and (symbolp x)
-                       (eq this-command x))
-                  (let ((this-command-name (symbol-name this-command)))
-                    (when (stringp x)
-                      (string-match-p x this-command-name)))))
-            command-list))
-
+(defun reverse-im--this-command-p (command)
+  "Check whether COMMAND does match `this-command'."
+  (or (and (symbolp command)
+           (eq this-command command))
+      (let ((this-command-name (symbol-name this-command)))
+        (when (stringp command)
+          (string-match-p command this-command-name)))))
 
 (defun reverse-im-read-char-include (orig-fun &rest args)
   "An advice for `read-char' compatible ORIG-FUN called with ARGS.
 Translate chars only when `this-command' is in `reverse-im-read-char-include-commands'."
   (let ((res (apply orig-fun args)))
-    (if (reverse-im--read-char-includes-p reverse-im-read-char-include-commands)
+    (if (seq-some #'reverse-im--this-command-p reverse-im-read-char-include-commands)
         (reverse-im--translate-char res t)
       res)))
 
@@ -277,11 +284,10 @@ Translate chars only when `this-command' is in `reverse-im-read-char-include-com
   "An advice for `read-char' compatible ORIG-FUN called with ARGS.
 Translate all chars, unless `this-command' is not in `reverse-im-read-char-exclude-commands'."
   (let ((res (apply orig-fun args)))
-    (if (reverse-im--read-char-includes-p reverse-im-read-char-exclude-commands)
+    (if (seq-some #'reverse-im--this-command-p reverse-im-read-char-exclude-commands)
         res
       (reverse-im--translate-char res t))))
 
-(defvar char-fold-include)
 
 ;;;###autoload
 (define-minor-mode reverse-im-mode
@@ -308,25 +314,28 @@ Translate all chars, unless `this-command' is not in `reverse-im-read-char-exclu
 
 ;;; Translation functions
 
+(defun reverse-im--translate-char-internal (keymap c strict)
+  "Try to translate C using KEYMAP.  Set STRICT if reverse translation is not needed."
+  (let ((to))
+    (map-keymap (lambda (from value)
+                  (if (= c from)
+                      (let ((v (aref value 0)))
+                        (when (characterp v)
+                          (setq to v)))
+                    (and (not strict)
+                         (member c (append value nil))
+                         (characterp from)
+                         (setq to from))))
+                keymap)
+    to))
+
 (defun reverse-im--translate-char (c &optional strict)
   "Try to translate C using active translation.  Set STRICT if reverse translation is not needed."
-  (when c
-    (let ((to)
-          (parent (keymap-parent function-key-map)))
-      (if parent
-          (map-keymap (lambda (from value)
-                        (if (= c from)
-                            (let ((v (aref value 0)))
-                              (when (characterp v)
-                                (setq to v)))
-                          (when (and (not strict)
-                                     (member c (append value nil))
-                                     (characterp from))
-                            (setq to from))))
-                      parent)
-        (message "Keymap is nil, is reverse-im-mode enabled?"))
-      (or to c))))
-
+  (and c
+       (if-let ((translation-keymap (reverse-im--translation-keymap)))
+           (reverse-im--translate-char-internal translation-keymap c strict)
+         (message "Keymap is nil, is reverse-im-mode enabled?")
+         c)))
 
 (defun reverse-im-translate-string (s)
   "Translate string S using active translation keymap."
