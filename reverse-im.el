@@ -328,7 +328,7 @@ Translate all chars, unless `this-command' is not in `reverse-im-read-char-exclu
                          (characterp from)
                          (setq to from))))
                 keymap)
-    to))
+    (or to c)))
 
 (defun reverse-im--translate-char (c &optional strict)
   "Try to translate C using active translation.  Set STRICT if reverse translation is not needed."
