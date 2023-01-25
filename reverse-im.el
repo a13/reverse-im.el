@@ -269,8 +269,9 @@ Example usage: (reverse-im-activate \"ukrainian-computer\")"
   "Check whether COMMAND does match `this-command'."
   (or (and (symbolp command)
            (eq this-command command))
-      (let ((this-command-name (symbol-name this-command)))
-        (when (stringp command)
+      (when (and (stringp command)
+                 (symbolp this-command))
+        (let ((this-command-name (symbol-name this-command)))
           (string-match-p command this-command-name)))))
 
 (defun reverse-im-read-char-include (orig-fun &rest args)
