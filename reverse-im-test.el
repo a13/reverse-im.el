@@ -45,7 +45,7 @@
 (ert-deftest reverse-im--im-to-pairs-test ()
   (should
    (equal
-    (reverse-im--im-to-pairs "russian-computer")
+    (reverse-im--im-to-pairs quail-keyboard-layout "russian-computer")
     '((62 1070) (60 1041) (77 1068) (78 1058) (66 1048) (86 1052) (67 1057)
       (88 1063) (90 1071) (34 1069) (58 1046) (76 1044) (75 1051) (74 1054)
       (72 1056) (71 1055) (70 1040) (68 1042) (83 1067) (65 1060) (125 1066)
@@ -60,7 +60,7 @@
 (ert-deftest reverse-im-sanity-test ()
   (let ((reverse-im--keymaps-alist nil))
     (should (mapcar (lambda (m)
-                      (reverse-im--im-to-pairs (car m)))
+                      (reverse-im--im-to-pairs quail-keyboard-layout (car m)))
                     input-method-alist))
     (should (mapcar (lambda (m)
                       (reverse-im--im-to-keymap (car m)))
