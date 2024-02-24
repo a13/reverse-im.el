@@ -14,8 +14,11 @@ jobs:
       fail-fast: false
       matrix:
         emacs_version:
+          - 26.1
           - 26.3
-          - 27.2
+          - 27.1
+          - 28.2
+          - 29.1
         ignore_warnings:
           - true
         include:
