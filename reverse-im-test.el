@@ -8,7 +8,7 @@
      (seq-set-equal-p s1 s2 'equal))))
 
 (ert-deftest reverse-im--modifiers-combos-test ()
-  (if (string= "26.3" emacs-version)
+  (if (version< "27.0" emacs-version)
       (should (equal (reverse-im--modifiers-combos '(control meta))
                      '(nil (control) (meta) (meta control))))
     (should
