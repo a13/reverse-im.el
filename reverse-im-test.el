@@ -8,13 +8,10 @@
      (seq-set-equal-p s1 s2 'equal))))
 
 (ert-deftest reverse-im--modifiers-combos-test ()
-  (if (version< "27.0" emacs-version)
-      (should (equal (reverse-im--modifiers-combos '(control meta))
-                     '(nil (control) (meta) (meta control))))
-    (should
-     (seq-set-equal-deep-p
-      (reverse-im--modifiers-combos '(meta control))
-      '(nil (meta) (control) (control meta)))))
+  (should (equal (sort (mapcar (apply-partially #'format "%s")
+                              (reverse-im--modifiers-combos '(control meta)))
+                      #'string<)
+                 '("(control)" "(meta control)" "(meta)" "nil")))
   (should
    (equal
     (reverse-im--modifiers-combos '())
