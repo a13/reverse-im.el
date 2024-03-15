@@ -1,6 +1,7 @@
 ;;; reverse-im.el --- Reverse mapping for non-default system layouts -*- lexical-binding: t -*-
 
-;; Authors: Juri Linkov <juri@jurta.org> (initial idea), Dmitry K. (packager and maintainer)
+;; Author: Juri Linkov <juri@jurta.org> (initial idea)
+;; Maintainer: DK <a13@users.noreply.github.com>
 ;; Package-Requires: ((emacs "25.1") (seq "2.23"))
 ;; Keywords: i18n
 ;; Homepage: https://github.com/a13/reverse-im.el
@@ -20,10 +21,10 @@
 ;; see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;; Overrides `function-key-map' parent for preferred input-method
-;; to translate input sequences the default system layout (english)
-;; so we can use Emacs bindings while non-default system layout is active.
 
+;; Override the parent keymap of `function-key-map' for the preferred input method
+;; to translate input sequences to the default system layout (English), so we can
+;; use Emacs bindings while the non-default system layout is active.
 ;; Usage example:
 ;; (use-package reverse-im
 ;;   :ensure t
@@ -32,8 +33,8 @@
 ;;   :config
 ;;   (reverse-im-mode t))
 
-;; or, alternatively, add the library to your load-path and
-;; (reverse-im-activate "ukrainian-computer") manually
+;; or, alternatively, add the library to your `load-path'
+;; and (reverse-im-activate "ukrainian-computer") manually
 
 ;;; Code:
 
@@ -68,7 +69,7 @@
 
 (defcustom reverse-im-avy-action-char
   ?T
-  "Char for avy-action-reverse-im-translate."
+  "Char for `reverse-im-avy-action-translate'.  Set to nil to turn avy action off."
   :type 'character
   :group 'reverse-im)
 
@@ -107,19 +108,20 @@
 
 ;;; Utils
 (defun reverse-im--modifiers-combos (modifiers)
-  "All combinations of MODIFIERS from the list argument."
+  "Return all combinations of MODIFIERS.  See also `reverse-im-modifiers'."
   (seq-reduce (lambda (acc x)
                 (append acc
                         (mapcar (apply-partially #'cons x) acc)))
               (seq-uniq modifiers)
               '(nil)))
 
-(defun reverse-im--sanitize-p (translation)
-  "Check if we should do TRANSLATION."
+(defun reverse-im--sanitize-p (layout translation)
+  "Check if we should do TRANSLATION for LAYOUT."
   (seq-let (keychar from) translation
+    ;; `keychar' and `from' should be different characters
     (and (characterp from) (characterp keychar) (/= from keychar)
-         ;; don't translate if the char is in default layout
-         (not (member from (append quail-keyboard-layout nil))))))
+         ;; `from' shouldn't be in the `layout'
+         (not (member from (append layout nil))))))
 
 (defun reverse-im--add-mods (modifiers key)
   "Generate a single translation binding adding MODIFIERS to KEY."
@@ -141,7 +143,7 @@
       (kill-buffer quail-completion-buf))
     (and current-input-method
          quail-keyboard-layout
-         (quail-map))))
+         (cdr (quail-map)))))
 
 (defun reverse-im--to-char (x)
   "Convert X to char, if needed."
@@ -164,11 +166,13 @@
                        (cdr translated))))))))
 
 ;; to test more easily
-(defun reverse-im--im-to-pairs (input-method)
-  "Generate a list of translation pairs for INPUT-METHOD."
-  (let* ((qm (reverse-im--im-to-quail-map input-method))
-         (normalized (mapcan #'reverse-im--normalize-keydef (cdr qm))))
-    (seq-filter #'reverse-im--sanitize-p normalized)))
+(defun reverse-im--im-to-pairs (layout input-method)
+  "Generate a list of translation pairs for INPUT-METHOD using LAYOUT."
+  (thread-last input-method
+    reverse-im--im-to-quail-map
+    (mapcan #'reverse-im--normalize-keydef)
+    (seq-filter (apply-partially #'reverse-im--sanitize-p layout))))
+
 
 ;;; Generate the translation keymap
 (defun reverse-im--im-to-keymap (input-method)
@@ -177,7 +181,7 @@
   (let ((input-method (intern input-method)))
     (or (alist-get input-method reverse-im--keymaps-alist)
         ;; generate translation pairs
-        (let* ((filtered (reverse-im--im-to-pairs input-method))
+        (let* ((filtered (reverse-im--im-to-pairs quail-keyboard-layout input-method))
                ;; add all modifiers
                (tt (mapcan #'reverse-im--key-def-internal filtered))
                (translation-keymap (make-sparse-keymap)))
@@ -387,7 +391,7 @@ current object."
 (defun reverse-im-translate-word (arg)
   "Translate word before the point.  With prefix ARG translates ARG words instead of the last one, if ARG is 0 - translate until the beginning of line."
   (interactive "p")
-  (if (eq 0 arg)
+  (if (zerop arg)
       (reverse-im--translate-subr #'move-beginning-of-line 1)
     (reverse-im--translate-subr #'backward-word arg)))
 

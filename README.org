@@ -174,5 +174,7 @@
 ** Known issues:
 
    - Bindings with AltGr (as Meta) [[https://github.com/a13/reverse-im.el/issues/4#issuecomment-308143947][don't work]] well on Windows.
-   - Single key shortcuts (i.e. without modifiers) [[https://github.com/a13/reverse-im.el/issues/17][don't work with]] in Hydra and some other modes (~org-agenda~).
    - [[https://github.com/a13/reverse-im.el/issues/21][Doesn't]] [[https://github.com/a13/reverse-im.el/issues/6][work]] well for punctuation keys if they are placed on different keys than in English layout.
+   - "Buffer is read-only:" error
+     Reverse-im doesn't work for /self-insert-command/ (obviously), but in read-only modes one may want to use single key shortcuts. In this case it's possible to /suppress-keymap/ to undefine /self-insert-command/, so /function-key-map/ override it's behavior.
+   - Single key shortcuts (i.e. without modifiers) [[https://github.com/a13/reverse-im.el/issues/17][don't work with]] in Hydra
