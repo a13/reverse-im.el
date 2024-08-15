@@ -24,9 +24,13 @@
          :bind
          ("M-T" . reverse-im-translate-word) ; fix a word in wrong layout
          :custom
-         (reverse-im-char-fold t) ; use lax matching
+         ;; cache generated keymaps
+         (reverse-im-cache-file (locate-user-emacs-file "reverse-im-cache.el"))
+         ;; use lax matching
+         (reverse-im-char-fold t)
          (reverse-im-read-char-advice-function #'reverse-im-read-char-include)
-         (reverse-im-input-methods '("ukrainian-computer")) ; translate these methods
+         ;; translate these methods
+         (reverse-im-input-methods '("ukrainian-computer"))
          :config
          (reverse-im-mode t)) ; turn the mode on
      #+END_SRC
