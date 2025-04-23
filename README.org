@@ -124,13 +124,13 @@
     You can choose which one to use by customizing ~reverse-im-read-char-advice-function~ before ~reverse-im-mode~ is enabled (see Examples above) or by advicing ~read-char~/~read-char-exclusive~ manually.
 
     #+BEGIN_SRC emacs-lisp
-      (advice-add #'read-char-exclusive #'reverse-im-read-char-include)
-      (advice-add #'read-char #'reverse-im-read-char-include)
+      (advice-add #'read-char-exclusive :around #'reverse-im-read-char-include)
+      (advice-add #'read-char :around #'reverse-im-read-char-include)
     #+END_SRC
     or
     #+BEGIN_SRC emacs-lisp
-      (advice-add 'read-char-exclusive #'reverse-im-read-char)
-      (advice-add 'read-char #'reverse-im-read-char)
+      (advice-add 'read-char-exclusive :around #'reverse-im-read-char)
+      (advice-add 'read-char :around #'reverse-im-read-char)
     #+END_SRC
 
     If something goes wrong, remove the advices by
