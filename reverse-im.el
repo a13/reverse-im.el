@@ -95,7 +95,7 @@
 
 (defcustom reverse-im-cache-file
   nil
-  "File to cache translation keymap.  Don't cache if `nil'."
+  "File to cache translation keymap.  Don't cache if nil."
   :group 'reverse-im
   :type 'file)
 
@@ -198,10 +198,12 @@
 
 ;; https://stackoverflow.com/questions/2321904/elisp-how-to-save-data-in-a-file
 (defun reverse-im--print-to-file (filename data)
+  "Print Lisp DATA to FILENAME."
   (with-temp-file filename
     (prin1 data (current-buffer))))
 
 (defun reverse-im--read-from-file (filename)
+  "Read Lisp data from FILENAME."
   (with-temp-buffer
     (insert-file-contents filename)
     (cl-assert (eq (point) (point-min)))
@@ -255,7 +257,8 @@ Example usage: (reverse-im-activate \"ukrainian-computer\")"
   "Show translation bindings for INPUT-METHOD using `which-key'."
   (interactive
    (list (read-input-method-name "Translate input method: ")))
-  (if (require 'which-key nil t)
+  (if (and (require 'which-key nil t)
+           (fboundp 'which-key--show-keymap))
       (which-key--show-keymap input-method
                               (reverse-im--im-to-keymap input-method))
     (message "which-key is not installed.")))
