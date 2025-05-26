@@ -122,12 +122,11 @@
 
    💡 This feature since is experimental, hacky and wasn't tested good enough, so use it on your own risk.
 
-   Reverse-im doesn't work with custom dispatchers like ~org-export~, ~org-capture~ , ~mu4e~ etc.
-   Some commands such as ~org-export~, ~org-capture~, and ~mu4e~, use custom dispatchers, don't work out of the box in non-latin layout.
+   Some commands such as ~org-export~, ~org-capture~, and ~mu4e~, use custom dispatchers, don't work out of the box in a non-latin layout.
    Fortunately most of them use ~read-char~ or ~read-char-exclusive~ for [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Reading-One-Event.html][reading input]], so we can advice the function to translate input characters. The simplest way is to set ~reverse-im-read-char-advice-function~ defcustom, though you can advice then #manually if you want to.
    There are two possible values - ~reverse-im-read-char-include~ (the less risky one) translates the input iff current command matches (or equals) any element in the customizable ~reverse-im-read-char-include-commands~ list. The more lazy (and risky) version ~reverse-im-read-char-exclude~  translates the input unless the current command matches any element in the ~reverse-im-read-char-exclude-commands~.
 
-   💡 set these before ~reverse-im-mode~ is enabled, or #advice the functions manually
+   💡 set these before ~reverse-im-mode~ is enabled, or advice the functions manually
 
 *** Manual configuration
     #+BEGIN_SRC emacs-lisp
