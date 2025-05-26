@@ -95,7 +95,7 @@
 
 (defcustom reverse-im-cache-file
   nil
-  "File to cache translation keymap.  Don't cache if `nil'."
+  "File to cache translation keymap.  Don't cache if nil."
   :group 'reverse-im
   :type 'file)
 
